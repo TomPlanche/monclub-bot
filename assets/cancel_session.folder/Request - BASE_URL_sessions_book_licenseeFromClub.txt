@@ -1,0 +1,21 @@
+POST https://{{BASE_URL}}/sessions/book/licenseeFromClub HTTP/1.1
+Host: {{BASE_URL}}
+Content-Type: application/json
+Accept-Encoding: gzip, deflate, br
+User-Agent: MonClubFakeAgent/311 CFNetwork/3860.500.83 Darwin/25.4.0
+Connection: keep-alive
+Accept: application/json
+Accept-Language: fr
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJ1c2VyVHlwZSI6ImFwcCIsInVzZXJJZCI6ImRlYWRiZWVmMDAwMDAwMDAwMDAwMDAwMSIsImNvYWNoIjpmYWxzZSwiY3VzdG9tSWQiOiJkZWFkYmVlZjAwMDAwMDAwMDAwMDAwMDIiLCJpYXQiOjE3Njg0MDY5MzMsImV4cCI6MTc5OTk0MjkzM30.FAKESIGNATUREXXXXXXXXXXXXXXXXXXXX
+Content-Length: 156
+
+{
+  "participant": {
+    "userId": "deadbeef0000000000000001",
+    "isPresent": "no",
+    "coordinates": null,
+    "bookingId": "deadbeef0000000000000004"
+  },
+  "sessionId": "deadbeef0000000000000003",
+  "customId": "deadbeef0000000000000002"
+}

@@ -1,0 +1,19 @@
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Date: Sun, 22 Mar 2026 12:00:00 GMT
+Server: Heroku
+Strict-Transport-Security: max-age=15552000; includeSubDomains
+X-Content-Type-Options: nosniff
+Transfer-Encoding: chunked
+
+{
+  "_id": "deadbeef0000000000000004",
+  "sessionId": "deadbeef0000000000000003",
+  "customId": "deadbeef0000000000000002",
+  "userId": "deadbeef0000000000000001",
+  "isPresent": "yes",
+  "bookingType": "membershipWithReservation",
+  "coordinates": null,
+  "createdAt": "2026-03-22T12:00:00.000Z",
+  "updatedAt": "2026-03-22T12:00:00.000Z"
+}

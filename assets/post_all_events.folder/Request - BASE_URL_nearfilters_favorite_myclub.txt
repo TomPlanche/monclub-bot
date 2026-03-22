@@ -1,0 +1,30 @@
+POST https://{{BASE_URL}}/nearfilters/favorite/myclub?customId=deadbeef0000000000000002&userId=deadbeef0000000000000001 HTTP/1.1
+Host: {{BASE_URL}}
+Content-Type: application/json
+Accept-Encoding: gzip, deflate, br
+User-Agent: MonClubFakeAgent/311 CFNetwork/3860.500.83 Darwin/25.4.0
+Connection: keep-alive
+baggage: sentry-environment=production,sentry-public_key=00000000000000000000000000000002,sentry-release=teamr.custom%403.5.1,sentry-trace_id=00000000000000000000000000000001
+Accept: application/json
+Accept-Language: fr
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJ1c2VyVHlwZSI6ImFwcCIsInVzZXJJZCI6ImRlYWRiZWVmMDAwMDAwMDAwMDAwMDAwMSIsImNvYWNoIjpmYWxzZSwiY3VzdG9tSWQiOiJkZWFkYmVlZjAwMDAwMDAwMDAwMDAwMDIiLCJpYXQiOjE3Njg0MDY5MzMsImV4cCI6MTc5OTk0MjkzM30.FAKESIGNATUREXXXXXXXXXXXXXXXXXXXX
+Content-Length: 252
+sentry-trace: 00000000000000000000000000000001-0000000000000001-0
+
+{
+  "filters": {
+    "tagName": "myclub",
+    "coordinates": [0.0, 0.0],
+    "price": null,
+    "discipline": null,
+    "date": null,
+    "time": null,
+    "level": null,
+    "type": null,
+    "category": null,
+    "pinnedSlots": null,
+    "categoryId": null,
+    "group": null
+  },
+  "coordinates": [0.0, 0.0]
+}

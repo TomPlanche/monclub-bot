@@ -1,0 +1,5475 @@
+HTTP/1.1 200 OK
+Content-Encoding: br
+Content-Type: application/json; charset=utf-8
+Date: Sun, 22 Mar 2026 12:33:04 GMT
+Etag: W/"00000-FAKEETAG0000000000000"
+Nel: {"report_to":"heroku-nel","response_headers":["Via"],"max_age":3600,"success_fraction":0.01,"failure_fraction":0.1}
+Report-To: {"group":"heroku-nel","endpoints":[{"url":"https://nel.example.com/reports?REDACTED\u0026sid=00000000-0000-0000-0000-000000000001\u0026ts=0000000000"}],"max_age":3600}
+Reporting-Endpoints: heroku-nel="https://nel.example.com/reports?REDACTED"
+Server: Heroku
+Strict-Transport-Security: max-age=15552000; includeSubDomains
+Vary: Accept-Encoding
+Via: 1.1 heroku-router
+X-Content-Type-Options: nosniff
+X-Dns-Prefetch-Control: off
+X-Download-Options: noopen
+X-Frame-Options: SAMEORIGIN
+X-Xss-Protection: 1; mode=block
+Transfer-Encoding: chunked
+
+[
+  {
+    "_id": "deadbeef0000000000000059",
+    "clubId": "deadbeef0000000000000029",
+    "totalQuantity": 0,
+    "totalQuantityFree": 12,
+    "price": 5,
+    "priceForFederation": 5,
+    "priceForMyLicensees": 0,
+    "level": "allLevels",
+    "coach": "Coach001 Anonymized",
+    "coachs": [
+      {
+        "coachId": "deadbeef0000000000000005",
+        "fullName": "Coach001 Anonymized",
+        "email": "anon001@example.com",
+        "phone": ""
+      },
+      {
+        "fullName": "",
+        "email": "",
+        "phone": ""
+      }
+    ],
+    "status": "⚠️TOURNOI COOL & MIXTE⚠️",
+    "guests": [],
+    "sold": 0,
+    "slotId": "deadbeef0000000000000058",
+    "date": "2026-03-22T08:00:00.000Z",
+    "time": "09H00",
+    "endTime": "15H00",
+    "type": "tournament",
+    "discipline": "volley",
+    "subDiscipline": "volley",
+    "zipCode": "75018",
+    "city": "Paris 18",
+    "club": [
+      {
+        "_id": "deadbeef0000000000000029",
+        "showSessionParticipantsOnMobile": true,
+        "name": "LOISIR Evènements",
+        "coverUrl": "https://teamr-assets.s3.amazonaws.com/cover/deadbeef0000000000000029/0000000000.jpg",
+        "logoUrl": "https://teamr-assets.s3.amazonaws.com/logo/deadbeef0000000000000029/0000000000.jpg",
+        "webCoverUrl": ""
+      }
+    ],
+    "tag": "",
+    "requiresTwoParticipants": false,
+    "sessionName": "Cool & Mixte - Dimanche 22 mars - 09h00-15h00",
+    "attendees": [
+      {
+        "userId": "deadbeef000000000000001b",
+        "bookingType": "membershipWithReservation"
+      },
+      {
+        "userId": "deadbeef000000000000003e",
+        "bookingType": "membershipWithReservation"
+      },
+      {
+        "userId": "deadbeef0000000000000008",
+        "bookingType": "membershipWithReservation"
+      },
+      {
+        "userId": "deadbeef000000000000002d",
+        "bookingType": "membershipWithReservation"
+      },
+      {
+        "userId": "deadbeef0000000000000028",
+        "bookingType": "membershipWithReservation"
+      },
+      {
+        "userId": "deadbeef0000000000000018",
+        "bookingType": "membershipWithReservation"
+      },
+      {
+        "userId": "deadbeef000000000000001d",
+        "bookingType": "membershipWithReservation"
+      }
+    ],
+    "slot": [
+      {
+        "slotName": "Cool & Mixte - Dimanche 22 mars - 09h00-15h00"
+      }
+    ],
+    "yesParticipants": [
+      "deadbeef000000000000001b",
+      "deadbeef000000000000003e",
+      "deadbeef0000000000000008",
+      "deadbeef000000000000002d",
+      "deadbeef0000000000000028",
+      "deadbeef0000000000000018",
+      "deadbeef000000000000001d"
+    ],
+    "participants": []
+  },
+  {
+    "_id": "deadbeef000000000000002f",
+    "clubId": "deadbeef0000000000000006",
+    "totalQuantity": 0,
+    "totalQuantityFree": 58,
+    "price": 5,
+    "priceForFederation": 5,
+    "priceForMyLicensees": 0,
+    "level": "newbie",
+    "coach": "Coach002 Anonymized",
+    "coachs": [
+      {
+        "coachId": "deadbeef0000000000000017",
+        "fullName": "Coach002 Anonymized",
+        "email": "anon002@example.com",
+        "phone": ""
+      },
+      {
+        "coachId": "deadbeef0000000000000054",
+        "fullName": "Coach003 Anonymized",
+        "email": "anon003@example.com",
+        "phone": ""
+      }
+    ],
+    "status": "",
+    "guests": [],
+    "sold": 0,
+    "slotId": "deadbeef000000000000002e",
+    "date": "2026-03-24T19:30:00.000Z",
+    "time": "20H30",
+    "endTime": "22H30",
+    "type": "training",
+    "discipline": "volley",
+    "subDiscipline": "volley",
+    "zipCode": "75015",
+    "city": "Paris 15",
+    "club": [
+      {
+        "_id": "deadbeef0000000000000006",
+        "showSessionParticipantsOnMobile": false,
+        "name": "LOISIR MARDI FEDERATION",
+        "coverUrl": "https://teamr-assets.s3.amazonaws.com/cover/deadbeef0000000000000006/0000000000.jpeg",
+        "logoUrl": "",
+        "webCoverUrl": "https://teamr-assets.s3.amazonaws.com/webCover/deadbeef0000000000000006/0000000000.jpeg"
+      }
+    ],
+    "tag": "",
+    "requiresTwoParticipants": false,
+    "sessionName": "LOISIR MARDI FEDERATION - Mardi - 20h30-22h30",
+    "attendees": [
+      {
+        "userId": "deadbeef000000000000000e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000016",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000027",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000026",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000023",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000022",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000021",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000009",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000014",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000025",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000013",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000019",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000010",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000012",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000015",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000007",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000024",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000020",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002b",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000040",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000041",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000042",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000043",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000044",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000045",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000049",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000046",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000048",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000047",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004b",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000050",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000052",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000053",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000057",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000005e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000055",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000056",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000005f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000011",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000051",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000006d",
+        "bookingType": "membership"
+      }
+    ],
+    "slot": [
+      {
+        "slotName": "LOISIR MARDI FEDERATION - Mardi - 20h30-22h30"
+      }
+    ],
+    "yesParticipants": [
+      "deadbeef000000000000000e",
+      "deadbeef000000000000001c",
+      "deadbeef000000000000002c",
+      "deadbeef0000000000000016",
+      "deadbeef000000000000000c",
+      "deadbeef0000000000000027",
+      "deadbeef0000000000000026",
+      "deadbeef000000000000001a",
+      "deadbeef0000000000000023",
+      "deadbeef0000000000000022",
+      "deadbeef0000000000000021",
+      "deadbeef0000000000000009",
+      "deadbeef0000000000000014",
+      "deadbeef0000000000000025",
+      "deadbeef0000000000000013",
+      "deadbeef0000000000000019",
+      "deadbeef000000000000000d",
+      "deadbeef000000000000003c",
+      "deadbeef000000000000001f",
+      "deadbeef0000000000000010",
+      "deadbeef000000000000001e",
+      "deadbeef000000000000000f",
+      "deadbeef0000000000000012",
+      "deadbeef0000000000000015",
+      "deadbeef0000000000000007",
+      "deadbeef0000000000000024",
+      "deadbeef0000000000000020",
+      "deadbeef000000000000002b",
+      "deadbeef000000000000003d",
+      "deadbeef000000000000003f",
+      "deadbeef0000000000000040",
+      "deadbeef0000000000000041",
+      "deadbeef0000000000000042",
+      "deadbeef0000000000000043",
+      "deadbeef0000000000000044",
+      "deadbeef0000000000000045",
+      "deadbeef0000000000000049",
+      "deadbeef0000000000000046",
+      "deadbeef0000000000000048",
+      "deadbeef0000000000000047",
+      "deadbeef000000000000004a",
+      "deadbeef000000000000004b",
+      "deadbeef000000000000004d",
+      "deadbeef000000000000004c",
+      "deadbeef000000000000004e",
+      "deadbeef000000000000004f",
+      "deadbeef0000000000000050",
+      "deadbeef0000000000000052",
+      "deadbeef0000000000000053",
+      "deadbeef0000000000000057",
+      "deadbeef000000000000005e",
+      "deadbeef0000000000000055",
+      "deadbeef0000000000000056",
+      "deadbeef000000000000005f",
+      "deadbeef0000000000000011",
+      "deadbeef0000000000000051",
+      "deadbeef000000000000002a",
+      "deadbeef000000000000006d"
+    ],
+    "participants": []
+  },
+  {
+    "_id": "deadbeef0000000000000061",
+    "clubId": "deadbeef0000000000000029",
+    "totalQuantity": 0,
+    "totalQuantityFree": 24,
+    "price": 5,
+    "priceForFederation": 5,
+    "priceForMyLicensees": 0,
+    "level": "allLevels",
+    "coach": "Coach004 Anonymized",
+    "coachs": [
+      {
+        "coachId": "deadbeef000000000000000b",
+        "fullName": "Coach004 Anonymized",
+        "email": "anon004@example.com",
+        "phone": ""
+      },
+      {
+        "coachId": "deadbeef000000000000000a",
+        "fullName": "Coach005 Anonymized",
+        "email": "anon005@example.com",
+        "phone": "REDACTED"
+      }
+    ],
+    "status": "",
+    "guests": [],
+    "sold": 0,
+    "slotId": "deadbeef0000000000000060",
+    "date": "2026-03-28T16:00:00.000Z",
+    "time": "17H00",
+    "endTime": "19H00",
+    "type": "free",
+    "discipline": "volley",
+    "subDiscipline": "volley",
+    "zipCode": "75015",
+    "city": "Paris 15",
+    "club": [
+      {
+        "_id": "deadbeef0000000000000029",
+        "showSessionParticipantsOnMobile": true,
+        "name": "LOISIR Evènements",
+        "coverUrl": "https://teamr-assets.s3.amazonaws.com/cover/deadbeef0000000000000029/0000000000.jpg",
+        "logoUrl": "https://teamr-assets.s3.amazonaws.com/logo/deadbeef0000000000000029/0000000000.jpg",
+        "webCoverUrl": ""
+      }
+    ],
+    "tag": "",
+    "requiresTwoParticipants": false,
+    "sessionName": "LOISIR Supplémentaire - Samedi Lacretelle- 17h-19h",
+    "attendees": [],
+    "slot": [
+      {
+        "slotName": "LOISIR Supplémentaire - Samedi Lacretelle- 17h-19h"
+      }
+    ],
+    "yesParticipants": [],
+    "participants": []
+  },
+  {
+    "_id": "deadbeef0000000000000030",
+    "clubId": "deadbeef0000000000000006",
+    "totalQuantity": 0,
+    "totalQuantityFree": 58,
+    "price": 5,
+    "priceForFederation": 5,
+    "priceForMyLicensees": 0,
+    "level": "newbie",
+    "coach": "Coach002 Anonymized",
+    "coachs": [
+      {
+        "coachId": "deadbeef0000000000000017",
+        "fullName": "Coach002 Anonymized",
+        "email": "anon002@example.com",
+        "phone": ""
+      },
+      {
+        "coachId": "deadbeef0000000000000054",
+        "fullName": "Coach003 Anonymized",
+        "email": "anon003@example.com",
+        "phone": ""
+      }
+    ],
+    "status": "",
+    "guests": [],
+    "sold": 0,
+    "slotId": "deadbeef000000000000002e",
+    "date": "2026-03-31T18:30:00.000Z",
+    "time": "20H30",
+    "endTime": "22H30",
+    "type": "training",
+    "discipline": "volley",
+    "subDiscipline": "volley",
+    "zipCode": "75015",
+    "city": "Paris 15",
+    "club": [
+      {
+        "_id": "deadbeef0000000000000006",
+        "showSessionParticipantsOnMobile": false,
+        "name": "LOISIR MARDI FEDERATION",
+        "coverUrl": "https://teamr-assets.s3.amazonaws.com/cover/deadbeef0000000000000006/0000000000.jpeg",
+        "logoUrl": "",
+        "webCoverUrl": "https://teamr-assets.s3.amazonaws.com/webCover/deadbeef0000000000000006/0000000000.jpeg"
+      }
+    ],
+    "tag": "",
+    "requiresTwoParticipants": false,
+    "sessionName": "LOISIR MARDI FEDERATION - Mardi - 20h30-22h30",
+    "attendees": [
+      {
+        "userId": "deadbeef000000000000000e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000016",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000027",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000026",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000023",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000022",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000021",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000009",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000014",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000025",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000013",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000019",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000010",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000012",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000015",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000007",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000024",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000020",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002b",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000040",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000041",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000042",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000043",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000044",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000045",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000049",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000046",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000048",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000047",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004b",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000050",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000052",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000053",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000057",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000005e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000055",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000056",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000005f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000011",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000051",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000006d",
+        "bookingType": "membership"
+      }
+    ],
+    "slot": [
+      {
+        "slotName": "LOISIR MARDI FEDERATION - Mardi - 20h30-22h30"
+      }
+    ],
+    "yesParticipants": [
+      "deadbeef000000000000000e",
+      "deadbeef000000000000001c",
+      "deadbeef000000000000002c",
+      "deadbeef0000000000000016",
+      "deadbeef000000000000000c",
+      "deadbeef0000000000000027",
+      "deadbeef0000000000000026",
+      "deadbeef000000000000001a",
+      "deadbeef0000000000000023",
+      "deadbeef0000000000000022",
+      "deadbeef0000000000000021",
+      "deadbeef0000000000000009",
+      "deadbeef0000000000000014",
+      "deadbeef0000000000000025",
+      "deadbeef0000000000000013",
+      "deadbeef0000000000000019",
+      "deadbeef000000000000000d",
+      "deadbeef000000000000003c",
+      "deadbeef000000000000001f",
+      "deadbeef0000000000000010",
+      "deadbeef000000000000001e",
+      "deadbeef000000000000000f",
+      "deadbeef0000000000000012",
+      "deadbeef0000000000000015",
+      "deadbeef0000000000000007",
+      "deadbeef0000000000000024",
+      "deadbeef0000000000000020",
+      "deadbeef000000000000002b",
+      "deadbeef000000000000003d",
+      "deadbeef000000000000003f",
+      "deadbeef0000000000000040",
+      "deadbeef0000000000000041",
+      "deadbeef0000000000000042",
+      "deadbeef0000000000000043",
+      "deadbeef0000000000000044",
+      "deadbeef0000000000000045",
+      "deadbeef0000000000000049",
+      "deadbeef0000000000000046",
+      "deadbeef0000000000000048",
+      "deadbeef0000000000000047",
+      "deadbeef000000000000004a",
+      "deadbeef000000000000004b",
+      "deadbeef000000000000004d",
+      "deadbeef000000000000004c",
+      "deadbeef000000000000004e",
+      "deadbeef000000000000004f",
+      "deadbeef0000000000000050",
+      "deadbeef0000000000000052",
+      "deadbeef0000000000000053",
+      "deadbeef0000000000000057",
+      "deadbeef000000000000005e",
+      "deadbeef0000000000000055",
+      "deadbeef0000000000000056",
+      "deadbeef000000000000005f",
+      "deadbeef0000000000000011",
+      "deadbeef0000000000000051",
+      "deadbeef000000000000002a",
+      "deadbeef000000000000006d"
+    ],
+    "participants": []
+  },
+  {
+    "_id": "deadbeef0000000000000062",
+    "clubId": "deadbeef0000000000000029",
+    "totalQuantity": 0,
+    "totalQuantityFree": 24,
+    "price": 5,
+    "priceForFederation": 5,
+    "priceForMyLicensees": 0,
+    "level": "allLevels",
+    "coach": "Coach004 Anonymized",
+    "coachs": [
+      {
+        "coachId": "deadbeef000000000000000b",
+        "fullName": "Coach004 Anonymized",
+        "email": "anon004@example.com",
+        "phone": ""
+      },
+      {
+        "coachId": "deadbeef000000000000000a",
+        "fullName": "Coach005 Anonymized",
+        "email": "anon005@example.com",
+        "phone": "REDACTED"
+      }
+    ],
+    "status": "",
+    "guests": [],
+    "sold": 0,
+    "slotId": "deadbeef0000000000000060",
+    "date": "2026-04-04T15:00:00.000Z",
+    "time": "17H00",
+    "endTime": "19H00",
+    "type": "free",
+    "discipline": "volley",
+    "subDiscipline": "volley",
+    "zipCode": "75015",
+    "city": "Paris 15",
+    "club": [
+      {
+        "_id": "deadbeef0000000000000029",
+        "showSessionParticipantsOnMobile": true,
+        "name": "LOISIR Evènements",
+        "coverUrl": "https://teamr-assets.s3.amazonaws.com/cover/deadbeef0000000000000029/0000000000.jpg",
+        "logoUrl": "https://teamr-assets.s3.amazonaws.com/logo/deadbeef0000000000000029/0000000000.jpg",
+        "webCoverUrl": ""
+      }
+    ],
+    "tag": "",
+    "requiresTwoParticipants": false,
+    "sessionName": "LOISIR Supplémentaire - Samedi Lacretelle- 17h-19h",
+    "attendees": [],
+    "slot": [
+      {
+        "slotName": "LOISIR Supplémentaire - Samedi Lacretelle- 17h-19h"
+      }
+    ],
+    "yesParticipants": [],
+    "participants": []
+  },
+  {
+    "_id": "deadbeef0000000000000031",
+    "clubId": "deadbeef0000000000000006",
+    "totalQuantity": 0,
+    "totalQuantityFree": 58,
+    "price": 5,
+    "priceForFederation": 5,
+    "priceForMyLicensees": 0,
+    "level": "newbie",
+    "coach": "Coach002 Anonymized",
+    "coachs": [
+      {
+        "coachId": "deadbeef0000000000000017",
+        "fullName": "Coach002 Anonymized",
+        "email": "anon002@example.com",
+        "phone": ""
+      },
+      {
+        "coachId": "deadbeef0000000000000054",
+        "fullName": "Coach003 Anonymized",
+        "email": "anon003@example.com",
+        "phone": ""
+      }
+    ],
+    "status": "",
+    "guests": [],
+    "sold": 0,
+    "slotId": "deadbeef000000000000002e",
+    "date": "2026-04-07T18:30:00.000Z",
+    "time": "20H30",
+    "endTime": "22H30",
+    "type": "training",
+    "discipline": "volley",
+    "subDiscipline": "volley",
+    "zipCode": "75015",
+    "city": "Paris 15",
+    "club": [
+      {
+        "_id": "deadbeef0000000000000006",
+        "showSessionParticipantsOnMobile": false,
+        "name": "LOISIR MARDI FEDERATION",
+        "coverUrl": "https://teamr-assets.s3.amazonaws.com/cover/deadbeef0000000000000006/0000000000.jpeg",
+        "logoUrl": "",
+        "webCoverUrl": "https://teamr-assets.s3.amazonaws.com/webCover/deadbeef0000000000000006/0000000000.jpeg"
+      }
+    ],
+    "tag": "",
+    "requiresTwoParticipants": false,
+    "sessionName": "LOISIR MARDI FEDERATION - Mardi - 20h30-22h30",
+    "attendees": [
+      {
+        "userId": "deadbeef000000000000000e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000016",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000027",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000026",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000023",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000022",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000021",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000009",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000014",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000025",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000013",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000019",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000010",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000012",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000015",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000007",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000024",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000020",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002b",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000040",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000041",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000042",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000043",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000044",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000045",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000049",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000046",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000048",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000047",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004b",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000050",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000052",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000053",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000057",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000005e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000055",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000056",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000005f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000011",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000051",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000006d",
+        "bookingType": "membership"
+      }
+    ],
+    "slot": [
+      {
+        "slotName": "LOISIR MARDI FEDERATION - Mardi - 20h30-22h30"
+      }
+    ],
+    "yesParticipants": [
+      "deadbeef000000000000000e",
+      "deadbeef000000000000001c",
+      "deadbeef000000000000002c",
+      "deadbeef0000000000000016",
+      "deadbeef000000000000000c",
+      "deadbeef0000000000000027",
+      "deadbeef0000000000000026",
+      "deadbeef000000000000001a",
+      "deadbeef0000000000000023",
+      "deadbeef0000000000000022",
+      "deadbeef0000000000000021",
+      "deadbeef0000000000000009",
+      "deadbeef0000000000000014",
+      "deadbeef0000000000000025",
+      "deadbeef0000000000000013",
+      "deadbeef0000000000000019",
+      "deadbeef000000000000000d",
+      "deadbeef000000000000003c",
+      "deadbeef000000000000001f",
+      "deadbeef0000000000000010",
+      "deadbeef000000000000001e",
+      "deadbeef000000000000000f",
+      "deadbeef0000000000000012",
+      "deadbeef0000000000000015",
+      "deadbeef0000000000000007",
+      "deadbeef0000000000000024",
+      "deadbeef0000000000000020",
+      "deadbeef000000000000002b",
+      "deadbeef000000000000003d",
+      "deadbeef000000000000003f",
+      "deadbeef0000000000000040",
+      "deadbeef0000000000000041",
+      "deadbeef0000000000000042",
+      "deadbeef0000000000000043",
+      "deadbeef0000000000000044",
+      "deadbeef0000000000000045",
+      "deadbeef0000000000000049",
+      "deadbeef0000000000000046",
+      "deadbeef0000000000000048",
+      "deadbeef0000000000000047",
+      "deadbeef000000000000004a",
+      "deadbeef000000000000004b",
+      "deadbeef000000000000004d",
+      "deadbeef000000000000004c",
+      "deadbeef000000000000004e",
+      "deadbeef000000000000004f",
+      "deadbeef0000000000000050",
+      "deadbeef0000000000000052",
+      "deadbeef0000000000000053",
+      "deadbeef0000000000000057",
+      "deadbeef000000000000005e",
+      "deadbeef0000000000000055",
+      "deadbeef0000000000000056",
+      "deadbeef000000000000005f",
+      "deadbeef0000000000000011",
+      "deadbeef0000000000000051",
+      "deadbeef000000000000002a",
+      "deadbeef000000000000006d"
+    ],
+    "participants": []
+  },
+  {
+    "_id": "deadbeef0000000000000063",
+    "clubId": "deadbeef0000000000000029",
+    "totalQuantity": 0,
+    "totalQuantityFree": 24,
+    "price": 5,
+    "priceForFederation": 5,
+    "priceForMyLicensees": 0,
+    "level": "allLevels",
+    "coach": "Coach004 Anonymized",
+    "coachs": [
+      {
+        "coachId": "deadbeef000000000000000b",
+        "fullName": "Coach004 Anonymized",
+        "email": "anon004@example.com",
+        "phone": ""
+      },
+      {
+        "coachId": "deadbeef000000000000000a",
+        "fullName": "Coach005 Anonymized",
+        "email": "anon005@example.com",
+        "phone": "REDACTED"
+      }
+    ],
+    "status": "",
+    "guests": [],
+    "sold": 0,
+    "slotId": "deadbeef0000000000000060",
+    "date": "2026-04-11T15:00:00.000Z",
+    "time": "17H00",
+    "endTime": "19H00",
+    "type": "free",
+    "discipline": "volley",
+    "subDiscipline": "volley",
+    "zipCode": "75015",
+    "city": "Paris 15",
+    "club": [
+      {
+        "_id": "deadbeef0000000000000029",
+        "showSessionParticipantsOnMobile": true,
+        "name": "LOISIR Evènements",
+        "coverUrl": "https://teamr-assets.s3.amazonaws.com/cover/deadbeef0000000000000029/0000000000.jpg",
+        "logoUrl": "https://teamr-assets.s3.amazonaws.com/logo/deadbeef0000000000000029/0000000000.jpg",
+        "webCoverUrl": ""
+      }
+    ],
+    "tag": "",
+    "requiresTwoParticipants": false,
+    "sessionName": "LOISIR Supplémentaire - Samedi Lacretelle- 17h-19h",
+    "attendees": [],
+    "slot": [
+      {
+        "slotName": "LOISIR Supplémentaire - Samedi Lacretelle- 17h-19h"
+      }
+    ],
+    "yesParticipants": [],
+    "participants": []
+  },
+  {
+    "_id": "deadbeef0000000000000032",
+    "clubId": "deadbeef0000000000000006",
+    "totalQuantity": 0,
+    "totalQuantityFree": 58,
+    "price": 5,
+    "priceForFederation": 5,
+    "priceForMyLicensees": 0,
+    "level": "newbie",
+    "coach": "Coach002 Anonymized",
+    "coachs": [
+      {
+        "coachId": "deadbeef0000000000000017",
+        "fullName": "Coach002 Anonymized",
+        "email": "anon002@example.com",
+        "phone": ""
+      },
+      {
+        "coachId": "deadbeef0000000000000054",
+        "fullName": "Coach003 Anonymized",
+        "email": "anon003@example.com",
+        "phone": ""
+      }
+    ],
+    "status": "",
+    "guests": [],
+    "sold": 0,
+    "slotId": "deadbeef000000000000002e",
+    "date": "2026-04-14T18:30:00.000Z",
+    "time": "20H30",
+    "endTime": "22H30",
+    "type": "training",
+    "discipline": "volley",
+    "subDiscipline": "volley",
+    "zipCode": "75015",
+    "city": "Paris 15",
+    "club": [
+      {
+        "_id": "deadbeef0000000000000006",
+        "showSessionParticipantsOnMobile": false,
+        "name": "LOISIR MARDI FEDERATION",
+        "coverUrl": "https://teamr-assets.s3.amazonaws.com/cover/deadbeef0000000000000006/0000000000.jpeg",
+        "logoUrl": "",
+        "webCoverUrl": "https://teamr-assets.s3.amazonaws.com/webCover/deadbeef0000000000000006/0000000000.jpeg"
+      }
+    ],
+    "tag": "",
+    "requiresTwoParticipants": false,
+    "sessionName": "LOISIR MARDI FEDERATION - Mardi - 20h30-22h30",
+    "attendees": [
+      {
+        "userId": "deadbeef000000000000000e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000016",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000027",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000026",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000023",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000022",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000021",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000009",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000014",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000025",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000013",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000019",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000010",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000012",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000015",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000007",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000024",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000020",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002b",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000040",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000041",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000042",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000043",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000044",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000045",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000049",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000046",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000048",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000047",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004b",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000050",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000052",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000053",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000057",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000005e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000055",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000056",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000005f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000011",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000051",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000006d",
+        "bookingType": "membership"
+      }
+    ],
+    "slot": [
+      {
+        "slotName": "LOISIR MARDI FEDERATION - Mardi - 20h30-22h30"
+      }
+    ],
+    "yesParticipants": [
+      "deadbeef000000000000000e",
+      "deadbeef000000000000001c",
+      "deadbeef000000000000002c",
+      "deadbeef0000000000000016",
+      "deadbeef000000000000000c",
+      "deadbeef0000000000000027",
+      "deadbeef0000000000000026",
+      "deadbeef000000000000001a",
+      "deadbeef0000000000000023",
+      "deadbeef0000000000000022",
+      "deadbeef0000000000000021",
+      "deadbeef0000000000000009",
+      "deadbeef0000000000000014",
+      "deadbeef0000000000000025",
+      "deadbeef0000000000000013",
+      "deadbeef0000000000000019",
+      "deadbeef000000000000000d",
+      "deadbeef000000000000003c",
+      "deadbeef000000000000001f",
+      "deadbeef0000000000000010",
+      "deadbeef000000000000001e",
+      "deadbeef000000000000000f",
+      "deadbeef0000000000000012",
+      "deadbeef0000000000000015",
+      "deadbeef0000000000000007",
+      "deadbeef0000000000000024",
+      "deadbeef0000000000000020",
+      "deadbeef000000000000002b",
+      "deadbeef000000000000003d",
+      "deadbeef000000000000003f",
+      "deadbeef0000000000000040",
+      "deadbeef0000000000000041",
+      "deadbeef0000000000000042",
+      "deadbeef0000000000000043",
+      "deadbeef0000000000000044",
+      "deadbeef0000000000000045",
+      "deadbeef0000000000000049",
+      "deadbeef0000000000000046",
+      "deadbeef0000000000000048",
+      "deadbeef0000000000000047",
+      "deadbeef000000000000004a",
+      "deadbeef000000000000004b",
+      "deadbeef000000000000004d",
+      "deadbeef000000000000004c",
+      "deadbeef000000000000004e",
+      "deadbeef000000000000004f",
+      "deadbeef0000000000000050",
+      "deadbeef0000000000000052",
+      "deadbeef0000000000000053",
+      "deadbeef0000000000000057",
+      "deadbeef000000000000005e",
+      "deadbeef0000000000000055",
+      "deadbeef0000000000000056",
+      "deadbeef000000000000005f",
+      "deadbeef0000000000000011",
+      "deadbeef0000000000000051",
+      "deadbeef000000000000002a",
+      "deadbeef000000000000006d"
+    ],
+    "participants": []
+  },
+  {
+    "_id": "deadbeef0000000000000064",
+    "clubId": "deadbeef0000000000000029",
+    "totalQuantity": 0,
+    "totalQuantityFree": 24,
+    "price": 5,
+    "priceForFederation": 5,
+    "priceForMyLicensees": 0,
+    "level": "allLevels",
+    "coach": "Coach004 Anonymized",
+    "coachs": [
+      {
+        "coachId": "deadbeef000000000000000b",
+        "fullName": "Coach004 Anonymized",
+        "email": "anon004@example.com",
+        "phone": ""
+      },
+      {
+        "coachId": "deadbeef000000000000000a",
+        "fullName": "Coach005 Anonymized",
+        "email": "anon005@example.com",
+        "phone": "REDACTED"
+      }
+    ],
+    "status": "",
+    "guests": [],
+    "sold": 0,
+    "slotId": "deadbeef0000000000000060",
+    "date": "2026-04-18T15:00:00.000Z",
+    "time": "17H00",
+    "endTime": "19H00",
+    "type": "free",
+    "discipline": "volley",
+    "subDiscipline": "volley",
+    "zipCode": "75015",
+    "city": "Paris 15",
+    "club": [
+      {
+        "_id": "deadbeef0000000000000029",
+        "showSessionParticipantsOnMobile": true,
+        "name": "LOISIR Evènements",
+        "coverUrl": "https://teamr-assets.s3.amazonaws.com/cover/deadbeef0000000000000029/0000000000.jpg",
+        "logoUrl": "https://teamr-assets.s3.amazonaws.com/logo/deadbeef0000000000000029/0000000000.jpg",
+        "webCoverUrl": ""
+      }
+    ],
+    "tag": "",
+    "requiresTwoParticipants": false,
+    "sessionName": "LOISIR Supplémentaire - Samedi Lacretelle- 17h-19h",
+    "attendees": [],
+    "slot": [
+      {
+        "slotName": "LOISIR Supplémentaire - Samedi Lacretelle- 17h-19h"
+      }
+    ],
+    "yesParticipants": [],
+    "participants": []
+  },
+  {
+    "_id": "deadbeef000000000000005b",
+    "clubId": "deadbeef0000000000000029",
+    "totalQuantity": 0,
+    "totalQuantityFree": 12,
+    "price": 5,
+    "priceForFederation": 5,
+    "priceForMyLicensees": 0,
+    "level": "allLevels",
+    "coach": "Coach001 Anonymized",
+    "coachs": [
+      {
+        "coachId": "deadbeef0000000000000005",
+        "fullName": "Coach001 Anonymized",
+        "email": "anon001@example.com",
+        "phone": ""
+      },
+      {
+        "fullName": "",
+        "email": "",
+        "phone": ""
+      }
+    ],
+    "status": "⚠️TOURNOI COOL & MIXTE⚠️",
+    "guests": [],
+    "sold": 0,
+    "slotId": "deadbeef000000000000005a",
+    "date": "2026-04-19T07:00:00.000Z",
+    "time": "09H00",
+    "endTime": "15H00",
+    "type": "tournament",
+    "discipline": "volley",
+    "subDiscipline": "volley",
+    "zipCode": "75018",
+    "city": "Paris 18",
+    "club": [
+      {
+        "_id": "deadbeef0000000000000029",
+        "showSessionParticipantsOnMobile": true,
+        "name": "LOISIR Evènements",
+        "coverUrl": "https://teamr-assets.s3.amazonaws.com/cover/deadbeef0000000000000029/0000000000.jpg",
+        "logoUrl": "https://teamr-assets.s3.amazonaws.com/logo/deadbeef0000000000000029/0000000000.jpg",
+        "webCoverUrl": ""
+      }
+    ],
+    "tag": "",
+    "requiresTwoParticipants": false,
+    "sessionName": "Cool & Mixte - Dimanche 19 avril - 09h00-15h00",
+    "attendees": [],
+    "slot": [
+      {
+        "slotName": "Cool & Mixte - Dimanche 19 avril - 09h00-15h00"
+      }
+    ],
+    "yesParticipants": [],
+    "participants": []
+  },
+  {
+    "_id": "deadbeef0000000000000033",
+    "clubId": "deadbeef0000000000000006",
+    "totalQuantity": 0,
+    "totalQuantityFree": 58,
+    "price": 5,
+    "priceForFederation": 5,
+    "priceForMyLicensees": 0,
+    "level": "newbie",
+    "coach": "Coach002 Anonymized",
+    "coachs": [
+      {
+        "coachId": "deadbeef0000000000000017",
+        "fullName": "Coach002 Anonymized",
+        "email": "anon002@example.com",
+        "phone": ""
+      },
+      {
+        "coachId": "deadbeef0000000000000054",
+        "fullName": "Coach003 Anonymized",
+        "email": "anon003@example.com",
+        "phone": ""
+      }
+    ],
+    "status": "",
+    "guests": [],
+    "sold": 0,
+    "slotId": "deadbeef000000000000002e",
+    "date": "2026-04-21T18:30:00.000Z",
+    "time": "20H30",
+    "endTime": "22H30",
+    "type": "training",
+    "discipline": "volley",
+    "subDiscipline": "volley",
+    "zipCode": "75015",
+    "city": "Paris 15",
+    "club": [
+      {
+        "_id": "deadbeef0000000000000006",
+        "showSessionParticipantsOnMobile": false,
+        "name": "LOISIR MARDI FEDERATION",
+        "coverUrl": "https://teamr-assets.s3.amazonaws.com/cover/deadbeef0000000000000006/0000000000.jpeg",
+        "logoUrl": "",
+        "webCoverUrl": "https://teamr-assets.s3.amazonaws.com/webCover/deadbeef0000000000000006/0000000000.jpeg"
+      }
+    ],
+    "tag": "",
+    "requiresTwoParticipants": false,
+    "sessionName": "LOISIR MARDI FEDERATION - Mardi - 20h30-22h30",
+    "attendees": [
+      {
+        "userId": "deadbeef000000000000000e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000016",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000027",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000026",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000023",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000022",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000021",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000009",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000014",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000025",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000013",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000019",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000010",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000012",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000015",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000007",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000024",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000020",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002b",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000040",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000041",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000042",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000043",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000044",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000045",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000049",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000046",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000048",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000047",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004b",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000050",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000052",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000053",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000057",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000005e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000055",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000056",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000005f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000011",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000051",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000006d",
+        "bookingType": "membership"
+      }
+    ],
+    "slot": [
+      {
+        "slotName": "LOISIR MARDI FEDERATION - Mardi - 20h30-22h30"
+      }
+    ],
+    "yesParticipants": [
+      "deadbeef000000000000000e",
+      "deadbeef000000000000001c",
+      "deadbeef000000000000002c",
+      "deadbeef0000000000000016",
+      "deadbeef000000000000000c",
+      "deadbeef0000000000000027",
+      "deadbeef0000000000000026",
+      "deadbeef000000000000001a",
+      "deadbeef0000000000000023",
+      "deadbeef0000000000000022",
+      "deadbeef0000000000000021",
+      "deadbeef0000000000000009",
+      "deadbeef0000000000000014",
+      "deadbeef0000000000000025",
+      "deadbeef0000000000000013",
+      "deadbeef0000000000000019",
+      "deadbeef000000000000000d",
+      "deadbeef000000000000003c",
+      "deadbeef000000000000001f",
+      "deadbeef0000000000000010",
+      "deadbeef000000000000001e",
+      "deadbeef000000000000000f",
+      "deadbeef0000000000000012",
+      "deadbeef0000000000000015",
+      "deadbeef0000000000000007",
+      "deadbeef0000000000000024",
+      "deadbeef0000000000000020",
+      "deadbeef000000000000002b",
+      "deadbeef000000000000003d",
+      "deadbeef000000000000003f",
+      "deadbeef0000000000000040",
+      "deadbeef0000000000000041",
+      "deadbeef0000000000000042",
+      "deadbeef0000000000000043",
+      "deadbeef0000000000000044",
+      "deadbeef0000000000000045",
+      "deadbeef0000000000000049",
+      "deadbeef0000000000000046",
+      "deadbeef0000000000000048",
+      "deadbeef0000000000000047",
+      "deadbeef000000000000004a",
+      "deadbeef000000000000004b",
+      "deadbeef000000000000004d",
+      "deadbeef000000000000004c",
+      "deadbeef000000000000004e",
+      "deadbeef000000000000004f",
+      "deadbeef0000000000000050",
+      "deadbeef0000000000000052",
+      "deadbeef0000000000000053",
+      "deadbeef0000000000000057",
+      "deadbeef000000000000005e",
+      "deadbeef0000000000000055",
+      "deadbeef0000000000000056",
+      "deadbeef000000000000005f",
+      "deadbeef0000000000000011",
+      "deadbeef0000000000000051",
+      "deadbeef000000000000002a",
+      "deadbeef000000000000006d"
+    ],
+    "participants": []
+  },
+  {
+    "_id": "deadbeef0000000000000065",
+    "clubId": "deadbeef0000000000000029",
+    "totalQuantity": 0,
+    "totalQuantityFree": 24,
+    "price": 5,
+    "priceForFederation": 5,
+    "priceForMyLicensees": 0,
+    "level": "allLevels",
+    "coach": "Coach004 Anonymized",
+    "coachs": [
+      {
+        "coachId": "deadbeef000000000000000b",
+        "fullName": "Coach004 Anonymized",
+        "email": "anon004@example.com",
+        "phone": ""
+      },
+      {
+        "coachId": "deadbeef000000000000000a",
+        "fullName": "Coach005 Anonymized",
+        "email": "anon005@example.com",
+        "phone": "REDACTED"
+      }
+    ],
+    "status": "",
+    "guests": [],
+    "sold": 0,
+    "slotId": "deadbeef0000000000000060",
+    "date": "2026-04-25T15:00:00.000Z",
+    "time": "17H00",
+    "endTime": "19H00",
+    "type": "free",
+    "discipline": "volley",
+    "subDiscipline": "volley",
+    "zipCode": "75015",
+    "city": "Paris 15",
+    "club": [
+      {
+        "_id": "deadbeef0000000000000029",
+        "showSessionParticipantsOnMobile": true,
+        "name": "LOISIR Evènements",
+        "coverUrl": "https://teamr-assets.s3.amazonaws.com/cover/deadbeef0000000000000029/0000000000.jpg",
+        "logoUrl": "https://teamr-assets.s3.amazonaws.com/logo/deadbeef0000000000000029/0000000000.jpg",
+        "webCoverUrl": ""
+      }
+    ],
+    "tag": "",
+    "requiresTwoParticipants": false,
+    "sessionName": "LOISIR Supplémentaire - Samedi Lacretelle- 17h-19h",
+    "attendees": [],
+    "slot": [
+      {
+        "slotName": "LOISIR Supplémentaire - Samedi Lacretelle- 17h-19h"
+      }
+    ],
+    "yesParticipants": [],
+    "participants": []
+  },
+  {
+    "_id": "deadbeef0000000000000034",
+    "clubId": "deadbeef0000000000000006",
+    "totalQuantity": 0,
+    "totalQuantityFree": 58,
+    "price": 5,
+    "priceForFederation": 5,
+    "priceForMyLicensees": 0,
+    "level": "newbie",
+    "coach": "Coach002 Anonymized",
+    "coachs": [
+      {
+        "coachId": "deadbeef0000000000000017",
+        "fullName": "Coach002 Anonymized",
+        "email": "anon002@example.com",
+        "phone": ""
+      },
+      {
+        "coachId": "deadbeef0000000000000054",
+        "fullName": "Coach003 Anonymized",
+        "email": "anon003@example.com",
+        "phone": ""
+      }
+    ],
+    "status": "",
+    "guests": [],
+    "sold": 0,
+    "slotId": "deadbeef000000000000002e",
+    "date": "2026-04-28T18:30:00.000Z",
+    "time": "20H30",
+    "endTime": "22H30",
+    "type": "training",
+    "discipline": "volley",
+    "subDiscipline": "volley",
+    "zipCode": "75015",
+    "city": "Paris 15",
+    "club": [
+      {
+        "_id": "deadbeef0000000000000006",
+        "showSessionParticipantsOnMobile": false,
+        "name": "LOISIR MARDI FEDERATION",
+        "coverUrl": "https://teamr-assets.s3.amazonaws.com/cover/deadbeef0000000000000006/0000000000.jpeg",
+        "logoUrl": "",
+        "webCoverUrl": "https://teamr-assets.s3.amazonaws.com/webCover/deadbeef0000000000000006/0000000000.jpeg"
+      }
+    ],
+    "tag": "",
+    "requiresTwoParticipants": false,
+    "sessionName": "LOISIR MARDI FEDERATION - Mardi - 20h30-22h30",
+    "attendees": [
+      {
+        "userId": "deadbeef000000000000000e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000016",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000027",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000026",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000023",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000022",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000021",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000009",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000014",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000025",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000013",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000019",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000010",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000012",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000015",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000007",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000024",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000020",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002b",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000040",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000041",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000042",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000043",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000044",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000045",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000049",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000046",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000048",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000047",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004b",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000050",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000052",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000053",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000057",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000005e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000055",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000056",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000005f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000011",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000051",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000006d",
+        "bookingType": "membership"
+      }
+    ],
+    "slot": [
+      {
+        "slotName": "LOISIR MARDI FEDERATION - Mardi - 20h30-22h30"
+      }
+    ],
+    "yesParticipants": [
+      "deadbeef000000000000000e",
+      "deadbeef000000000000001c",
+      "deadbeef000000000000002c",
+      "deadbeef0000000000000016",
+      "deadbeef000000000000000c",
+      "deadbeef0000000000000027",
+      "deadbeef0000000000000026",
+      "deadbeef000000000000001a",
+      "deadbeef0000000000000023",
+      "deadbeef0000000000000022",
+      "deadbeef0000000000000021",
+      "deadbeef0000000000000009",
+      "deadbeef0000000000000014",
+      "deadbeef0000000000000025",
+      "deadbeef0000000000000013",
+      "deadbeef0000000000000019",
+      "deadbeef000000000000000d",
+      "deadbeef000000000000003c",
+      "deadbeef000000000000001f",
+      "deadbeef0000000000000010",
+      "deadbeef000000000000001e",
+      "deadbeef000000000000000f",
+      "deadbeef0000000000000012",
+      "deadbeef0000000000000015",
+      "deadbeef0000000000000007",
+      "deadbeef0000000000000024",
+      "deadbeef0000000000000020",
+      "deadbeef000000000000002b",
+      "deadbeef000000000000003d",
+      "deadbeef000000000000003f",
+      "deadbeef0000000000000040",
+      "deadbeef0000000000000041",
+      "deadbeef0000000000000042",
+      "deadbeef0000000000000043",
+      "deadbeef0000000000000044",
+      "deadbeef0000000000000045",
+      "deadbeef0000000000000049",
+      "deadbeef0000000000000046",
+      "deadbeef0000000000000048",
+      "deadbeef0000000000000047",
+      "deadbeef000000000000004a",
+      "deadbeef000000000000004b",
+      "deadbeef000000000000004d",
+      "deadbeef000000000000004c",
+      "deadbeef000000000000004e",
+      "deadbeef000000000000004f",
+      "deadbeef0000000000000050",
+      "deadbeef0000000000000052",
+      "deadbeef0000000000000053",
+      "deadbeef0000000000000057",
+      "deadbeef000000000000005e",
+      "deadbeef0000000000000055",
+      "deadbeef0000000000000056",
+      "deadbeef000000000000005f",
+      "deadbeef0000000000000011",
+      "deadbeef0000000000000051",
+      "deadbeef000000000000002a",
+      "deadbeef000000000000006d"
+    ],
+    "participants": []
+  },
+  {
+    "_id": "deadbeef0000000000000066",
+    "clubId": "deadbeef0000000000000029",
+    "totalQuantity": 0,
+    "totalQuantityFree": 24,
+    "price": 5,
+    "priceForFederation": 5,
+    "priceForMyLicensees": 0,
+    "level": "allLevels",
+    "coach": "Coach004 Anonymized",
+    "coachs": [
+      {
+        "coachId": "deadbeef000000000000000b",
+        "fullName": "Coach004 Anonymized",
+        "email": "anon004@example.com",
+        "phone": ""
+      },
+      {
+        "coachId": "deadbeef000000000000000a",
+        "fullName": "Coach005 Anonymized",
+        "email": "anon005@example.com",
+        "phone": "REDACTED"
+      }
+    ],
+    "status": "",
+    "guests": [],
+    "sold": 0,
+    "slotId": "deadbeef0000000000000060",
+    "date": "2026-05-02T15:00:00.000Z",
+    "time": "17H00",
+    "endTime": "19H00",
+    "type": "free",
+    "discipline": "volley",
+    "subDiscipline": "volley",
+    "zipCode": "75015",
+    "city": "Paris 15",
+    "club": [
+      {
+        "_id": "deadbeef0000000000000029",
+        "showSessionParticipantsOnMobile": true,
+        "name": "LOISIR Evènements",
+        "coverUrl": "https://teamr-assets.s3.amazonaws.com/cover/deadbeef0000000000000029/0000000000.jpg",
+        "logoUrl": "https://teamr-assets.s3.amazonaws.com/logo/deadbeef0000000000000029/0000000000.jpg",
+        "webCoverUrl": ""
+      }
+    ],
+    "tag": "",
+    "requiresTwoParticipants": false,
+    "sessionName": "LOISIR Supplémentaire - Samedi Lacretelle- 17h-19h",
+    "attendees": [],
+    "slot": [
+      {
+        "slotName": "LOISIR Supplémentaire - Samedi Lacretelle- 17h-19h"
+      }
+    ],
+    "yesParticipants": [],
+    "participants": []
+  },
+  {
+    "_id": "deadbeef0000000000000035",
+    "clubId": "deadbeef0000000000000006",
+    "totalQuantity": 0,
+    "totalQuantityFree": 58,
+    "price": 5,
+    "priceForFederation": 5,
+    "priceForMyLicensees": 0,
+    "level": "newbie",
+    "coach": "Coach002 Anonymized",
+    "coachs": [
+      {
+        "coachId": "deadbeef0000000000000017",
+        "fullName": "Coach002 Anonymized",
+        "email": "anon002@example.com",
+        "phone": ""
+      },
+      {
+        "coachId": "deadbeef0000000000000054",
+        "fullName": "Coach003 Anonymized",
+        "email": "anon003@example.com",
+        "phone": ""
+      }
+    ],
+    "status": "",
+    "guests": [],
+    "sold": 0,
+    "slotId": "deadbeef000000000000002e",
+    "date": "2026-05-05T18:30:00.000Z",
+    "time": "20H30",
+    "endTime": "22H30",
+    "type": "training",
+    "discipline": "volley",
+    "subDiscipline": "volley",
+    "zipCode": "75015",
+    "city": "Paris 15",
+    "club": [
+      {
+        "_id": "deadbeef0000000000000006",
+        "showSessionParticipantsOnMobile": false,
+        "name": "LOISIR MARDI FEDERATION",
+        "coverUrl": "https://teamr-assets.s3.amazonaws.com/cover/deadbeef0000000000000006/0000000000.jpeg",
+        "logoUrl": "",
+        "webCoverUrl": "https://teamr-assets.s3.amazonaws.com/webCover/deadbeef0000000000000006/0000000000.jpeg"
+      }
+    ],
+    "tag": "",
+    "requiresTwoParticipants": false,
+    "sessionName": "LOISIR MARDI FEDERATION - Mardi - 20h30-22h30",
+    "attendees": [
+      {
+        "userId": "deadbeef000000000000000e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000016",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000027",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000026",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000023",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000022",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000021",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000009",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000014",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000025",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000013",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000019",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000010",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000012",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000015",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000007",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000024",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000020",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002b",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000040",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000041",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000042",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000043",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000044",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000045",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000049",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000046",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000048",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000047",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004b",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000050",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000052",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000053",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000057",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000005e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000055",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000056",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000005f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000011",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000051",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000006d",
+        "bookingType": "membership"
+      }
+    ],
+    "slot": [
+      {
+        "slotName": "LOISIR MARDI FEDERATION - Mardi - 20h30-22h30"
+      }
+    ],
+    "yesParticipants": [
+      "deadbeef000000000000000e",
+      "deadbeef000000000000001c",
+      "deadbeef000000000000002c",
+      "deadbeef0000000000000016",
+      "deadbeef000000000000000c",
+      "deadbeef0000000000000027",
+      "deadbeef0000000000000026",
+      "deadbeef000000000000001a",
+      "deadbeef0000000000000023",
+      "deadbeef0000000000000022",
+      "deadbeef0000000000000021",
+      "deadbeef0000000000000009",
+      "deadbeef0000000000000014",
+      "deadbeef0000000000000025",
+      "deadbeef0000000000000013",
+      "deadbeef0000000000000019",
+      "deadbeef000000000000000d",
+      "deadbeef000000000000003c",
+      "deadbeef000000000000001f",
+      "deadbeef0000000000000010",
+      "deadbeef000000000000001e",
+      "deadbeef000000000000000f",
+      "deadbeef0000000000000012",
+      "deadbeef0000000000000015",
+      "deadbeef0000000000000007",
+      "deadbeef0000000000000024",
+      "deadbeef0000000000000020",
+      "deadbeef000000000000002b",
+      "deadbeef000000000000003d",
+      "deadbeef000000000000003f",
+      "deadbeef0000000000000040",
+      "deadbeef0000000000000041",
+      "deadbeef0000000000000042",
+      "deadbeef0000000000000043",
+      "deadbeef0000000000000044",
+      "deadbeef0000000000000045",
+      "deadbeef0000000000000049",
+      "deadbeef0000000000000046",
+      "deadbeef0000000000000048",
+      "deadbeef0000000000000047",
+      "deadbeef000000000000004a",
+      "deadbeef000000000000004b",
+      "deadbeef000000000000004d",
+      "deadbeef000000000000004c",
+      "deadbeef000000000000004e",
+      "deadbeef000000000000004f",
+      "deadbeef0000000000000050",
+      "deadbeef0000000000000052",
+      "deadbeef0000000000000053",
+      "deadbeef0000000000000057",
+      "deadbeef000000000000005e",
+      "deadbeef0000000000000055",
+      "deadbeef0000000000000056",
+      "deadbeef000000000000005f",
+      "deadbeef0000000000000011",
+      "deadbeef0000000000000051",
+      "deadbeef000000000000002a",
+      "deadbeef000000000000006d"
+    ],
+    "participants": []
+  },
+  {
+    "_id": "deadbeef0000000000000067",
+    "clubId": "deadbeef0000000000000029",
+    "totalQuantity": 0,
+    "totalQuantityFree": 24,
+    "price": 5,
+    "priceForFederation": 5,
+    "priceForMyLicensees": 0,
+    "level": "allLevels",
+    "coach": "Coach004 Anonymized",
+    "coachs": [
+      {
+        "coachId": "deadbeef000000000000000b",
+        "fullName": "Coach004 Anonymized",
+        "email": "anon004@example.com",
+        "phone": ""
+      },
+      {
+        "coachId": "deadbeef000000000000000a",
+        "fullName": "Coach005 Anonymized",
+        "email": "anon005@example.com",
+        "phone": "REDACTED"
+      }
+    ],
+    "status": "",
+    "guests": [],
+    "sold": 0,
+    "slotId": "deadbeef0000000000000060",
+    "date": "2026-05-09T15:00:00.000Z",
+    "time": "17H00",
+    "endTime": "19H00",
+    "type": "free",
+    "discipline": "volley",
+    "subDiscipline": "volley",
+    "zipCode": "75015",
+    "city": "Paris 15",
+    "club": [
+      {
+        "_id": "deadbeef0000000000000029",
+        "showSessionParticipantsOnMobile": true,
+        "name": "LOISIR Evènements",
+        "coverUrl": "https://teamr-assets.s3.amazonaws.com/cover/deadbeef0000000000000029/0000000000.jpg",
+        "logoUrl": "https://teamr-assets.s3.amazonaws.com/logo/deadbeef0000000000000029/0000000000.jpg",
+        "webCoverUrl": ""
+      }
+    ],
+    "tag": "",
+    "requiresTwoParticipants": false,
+    "sessionName": "LOISIR Supplémentaire - Samedi Lacretelle- 17h-19h",
+    "attendees": [],
+    "slot": [
+      {
+        "slotName": "LOISIR Supplémentaire - Samedi Lacretelle- 17h-19h"
+      }
+    ],
+    "yesParticipants": [],
+    "participants": []
+  },
+  {
+    "_id": "deadbeef0000000000000036",
+    "clubId": "deadbeef0000000000000006",
+    "totalQuantity": 0,
+    "totalQuantityFree": 58,
+    "price": 5,
+    "priceForFederation": 5,
+    "priceForMyLicensees": 0,
+    "level": "newbie",
+    "coach": "Coach002 Anonymized",
+    "coachs": [
+      {
+        "coachId": "deadbeef0000000000000017",
+        "fullName": "Coach002 Anonymized",
+        "email": "anon002@example.com",
+        "phone": ""
+      },
+      {
+        "coachId": "deadbeef0000000000000054",
+        "fullName": "Coach003 Anonymized",
+        "email": "anon003@example.com",
+        "phone": ""
+      }
+    ],
+    "status": "",
+    "guests": [],
+    "sold": 0,
+    "slotId": "deadbeef000000000000002e",
+    "date": "2026-05-12T18:30:00.000Z",
+    "time": "20H30",
+    "endTime": "22H30",
+    "type": "training",
+    "discipline": "volley",
+    "subDiscipline": "volley",
+    "zipCode": "75015",
+    "city": "Paris 15",
+    "club": [
+      {
+        "_id": "deadbeef0000000000000006",
+        "showSessionParticipantsOnMobile": false,
+        "name": "LOISIR MARDI FEDERATION",
+        "coverUrl": "https://teamr-assets.s3.amazonaws.com/cover/deadbeef0000000000000006/0000000000.jpeg",
+        "logoUrl": "",
+        "webCoverUrl": "https://teamr-assets.s3.amazonaws.com/webCover/deadbeef0000000000000006/0000000000.jpeg"
+      }
+    ],
+    "tag": "",
+    "requiresTwoParticipants": false,
+    "sessionName": "LOISIR MARDI FEDERATION - Mardi - 20h30-22h30",
+    "attendees": [
+      {
+        "userId": "deadbeef000000000000000e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000016",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000027",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000026",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000023",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000022",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000021",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000009",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000014",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000025",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000013",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000019",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000010",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000012",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000015",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000007",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000024",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000020",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002b",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000040",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000041",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000042",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000043",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000044",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000045",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000049",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000046",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000048",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000047",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004b",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000050",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000052",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000053",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000057",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000005e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000055",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000056",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000005f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000011",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000051",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000006d",
+        "bookingType": "membership"
+      }
+    ],
+    "slot": [
+      {
+        "slotName": "LOISIR MARDI FEDERATION - Mardi - 20h30-22h30"
+      }
+    ],
+    "yesParticipants": [
+      "deadbeef000000000000000e",
+      "deadbeef000000000000001c",
+      "deadbeef000000000000002c",
+      "deadbeef0000000000000016",
+      "deadbeef000000000000000c",
+      "deadbeef0000000000000027",
+      "deadbeef0000000000000026",
+      "deadbeef000000000000001a",
+      "deadbeef0000000000000023",
+      "deadbeef0000000000000022",
+      "deadbeef0000000000000021",
+      "deadbeef0000000000000009",
+      "deadbeef0000000000000014",
+      "deadbeef0000000000000025",
+      "deadbeef0000000000000013",
+      "deadbeef0000000000000019",
+      "deadbeef000000000000000d",
+      "deadbeef000000000000003c",
+      "deadbeef000000000000001f",
+      "deadbeef0000000000000010",
+      "deadbeef000000000000001e",
+      "deadbeef000000000000000f",
+      "deadbeef0000000000000012",
+      "deadbeef0000000000000015",
+      "deadbeef0000000000000007",
+      "deadbeef0000000000000024",
+      "deadbeef0000000000000020",
+      "deadbeef000000000000002b",
+      "deadbeef000000000000003d",
+      "deadbeef000000000000003f",
+      "deadbeef0000000000000040",
+      "deadbeef0000000000000041",
+      "deadbeef0000000000000042",
+      "deadbeef0000000000000043",
+      "deadbeef0000000000000044",
+      "deadbeef0000000000000045",
+      "deadbeef0000000000000049",
+      "deadbeef0000000000000046",
+      "deadbeef0000000000000048",
+      "deadbeef0000000000000047",
+      "deadbeef000000000000004a",
+      "deadbeef000000000000004b",
+      "deadbeef000000000000004d",
+      "deadbeef000000000000004c",
+      "deadbeef000000000000004e",
+      "deadbeef000000000000004f",
+      "deadbeef0000000000000050",
+      "deadbeef0000000000000052",
+      "deadbeef0000000000000053",
+      "deadbeef0000000000000057",
+      "deadbeef000000000000005e",
+      "deadbeef0000000000000055",
+      "deadbeef0000000000000056",
+      "deadbeef000000000000005f",
+      "deadbeef0000000000000011",
+      "deadbeef0000000000000051",
+      "deadbeef000000000000002a",
+      "deadbeef000000000000006d"
+    ],
+    "participants": []
+  },
+  {
+    "_id": "deadbeef0000000000000068",
+    "clubId": "deadbeef0000000000000029",
+    "totalQuantity": 0,
+    "totalQuantityFree": 24,
+    "price": 5,
+    "priceForFederation": 5,
+    "priceForMyLicensees": 0,
+    "level": "allLevels",
+    "coach": "Coach004 Anonymized",
+    "coachs": [
+      {
+        "coachId": "deadbeef000000000000000b",
+        "fullName": "Coach004 Anonymized",
+        "email": "anon004@example.com",
+        "phone": ""
+      },
+      {
+        "coachId": "deadbeef000000000000000a",
+        "fullName": "Coach005 Anonymized",
+        "email": "anon005@example.com",
+        "phone": "REDACTED"
+      }
+    ],
+    "status": "",
+    "guests": [],
+    "sold": 0,
+    "slotId": "deadbeef0000000000000060",
+    "date": "2026-05-16T15:00:00.000Z",
+    "time": "17H00",
+    "endTime": "19H00",
+    "type": "free",
+    "discipline": "volley",
+    "subDiscipline": "volley",
+    "zipCode": "75015",
+    "city": "Paris 15",
+    "club": [
+      {
+        "_id": "deadbeef0000000000000029",
+        "showSessionParticipantsOnMobile": true,
+        "name": "LOISIR Evènements",
+        "coverUrl": "https://teamr-assets.s3.amazonaws.com/cover/deadbeef0000000000000029/0000000000.jpg",
+        "logoUrl": "https://teamr-assets.s3.amazonaws.com/logo/deadbeef0000000000000029/0000000000.jpg",
+        "webCoverUrl": ""
+      }
+    ],
+    "tag": "",
+    "requiresTwoParticipants": false,
+    "sessionName": "LOISIR Supplémentaire - Samedi Lacretelle- 17h-19h",
+    "attendees": [],
+    "slot": [
+      {
+        "slotName": "LOISIR Supplémentaire - Samedi Lacretelle- 17h-19h"
+      }
+    ],
+    "yesParticipants": [],
+    "participants": []
+  },
+  {
+    "_id": "deadbeef0000000000000037",
+    "clubId": "deadbeef0000000000000006",
+    "totalQuantity": 0,
+    "totalQuantityFree": 58,
+    "price": 5,
+    "priceForFederation": 5,
+    "priceForMyLicensees": 0,
+    "level": "newbie",
+    "coach": "Coach002 Anonymized",
+    "coachs": [
+      {
+        "coachId": "deadbeef0000000000000017",
+        "fullName": "Coach002 Anonymized",
+        "email": "anon002@example.com",
+        "phone": ""
+      },
+      {
+        "coachId": "deadbeef0000000000000054",
+        "fullName": "Coach003 Anonymized",
+        "email": "anon003@example.com",
+        "phone": ""
+      }
+    ],
+    "status": "",
+    "guests": [],
+    "sold": 0,
+    "slotId": "deadbeef000000000000002e",
+    "date": "2026-05-19T18:30:00.000Z",
+    "time": "20H30",
+    "endTime": "22H30",
+    "type": "training",
+    "discipline": "volley",
+    "subDiscipline": "volley",
+    "zipCode": "75015",
+    "city": "Paris 15",
+    "club": [
+      {
+        "_id": "deadbeef0000000000000006",
+        "showSessionParticipantsOnMobile": false,
+        "name": "LOISIR MARDI FEDERATION",
+        "coverUrl": "https://teamr-assets.s3.amazonaws.com/cover/deadbeef0000000000000006/0000000000.jpeg",
+        "logoUrl": "",
+        "webCoverUrl": "https://teamr-assets.s3.amazonaws.com/webCover/deadbeef0000000000000006/0000000000.jpeg"
+      }
+    ],
+    "tag": "",
+    "requiresTwoParticipants": false,
+    "sessionName": "LOISIR MARDI FEDERATION - Mardi - 20h30-22h30",
+    "attendees": [
+      {
+        "userId": "deadbeef000000000000000e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000016",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000027",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000026",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000023",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000022",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000021",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000009",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000014",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000025",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000013",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000019",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000010",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000012",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000015",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000007",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000024",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000020",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002b",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000040",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000041",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000042",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000043",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000044",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000045",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000049",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000046",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000048",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000047",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004b",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000050",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000052",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000053",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000057",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000005e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000055",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000056",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000005f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000011",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000051",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000006d",
+        "bookingType": "membership"
+      }
+    ],
+    "slot": [
+      {
+        "slotName": "LOISIR MARDI FEDERATION - Mardi - 20h30-22h30"
+      }
+    ],
+    "yesParticipants": [
+      "deadbeef000000000000000e",
+      "deadbeef000000000000001c",
+      "deadbeef000000000000002c",
+      "deadbeef0000000000000016",
+      "deadbeef000000000000000c",
+      "deadbeef0000000000000027",
+      "deadbeef0000000000000026",
+      "deadbeef000000000000001a",
+      "deadbeef0000000000000023",
+      "deadbeef0000000000000022",
+      "deadbeef0000000000000021",
+      "deadbeef0000000000000009",
+      "deadbeef0000000000000014",
+      "deadbeef0000000000000025",
+      "deadbeef0000000000000013",
+      "deadbeef0000000000000019",
+      "deadbeef000000000000000d",
+      "deadbeef000000000000003c",
+      "deadbeef000000000000001f",
+      "deadbeef0000000000000010",
+      "deadbeef000000000000001e",
+      "deadbeef000000000000000f",
+      "deadbeef0000000000000012",
+      "deadbeef0000000000000015",
+      "deadbeef0000000000000007",
+      "deadbeef0000000000000024",
+      "deadbeef0000000000000020",
+      "deadbeef000000000000002b",
+      "deadbeef000000000000003d",
+      "deadbeef000000000000003f",
+      "deadbeef0000000000000040",
+      "deadbeef0000000000000041",
+      "deadbeef0000000000000042",
+      "deadbeef0000000000000043",
+      "deadbeef0000000000000044",
+      "deadbeef0000000000000045",
+      "deadbeef0000000000000049",
+      "deadbeef0000000000000046",
+      "deadbeef0000000000000048",
+      "deadbeef0000000000000047",
+      "deadbeef000000000000004a",
+      "deadbeef000000000000004b",
+      "deadbeef000000000000004d",
+      "deadbeef000000000000004c",
+      "deadbeef000000000000004e",
+      "deadbeef000000000000004f",
+      "deadbeef0000000000000050",
+      "deadbeef0000000000000052",
+      "deadbeef0000000000000053",
+      "deadbeef0000000000000057",
+      "deadbeef000000000000005e",
+      "deadbeef0000000000000055",
+      "deadbeef0000000000000056",
+      "deadbeef000000000000005f",
+      "deadbeef0000000000000011",
+      "deadbeef0000000000000051",
+      "deadbeef000000000000002a",
+      "deadbeef000000000000006d"
+    ],
+    "participants": []
+  },
+  {
+    "_id": "deadbeef0000000000000069",
+    "clubId": "deadbeef0000000000000029",
+    "totalQuantity": 0,
+    "totalQuantityFree": 24,
+    "price": 5,
+    "priceForFederation": 5,
+    "priceForMyLicensees": 0,
+    "level": "allLevels",
+    "coach": "Coach004 Anonymized",
+    "coachs": [
+      {
+        "coachId": "deadbeef000000000000000b",
+        "fullName": "Coach004 Anonymized",
+        "email": "anon004@example.com",
+        "phone": ""
+      },
+      {
+        "coachId": "deadbeef000000000000000a",
+        "fullName": "Coach005 Anonymized",
+        "email": "anon005@example.com",
+        "phone": "REDACTED"
+      }
+    ],
+    "status": "",
+    "guests": [],
+    "sold": 0,
+    "slotId": "deadbeef0000000000000060",
+    "date": "2026-05-23T15:00:00.000Z",
+    "time": "17H00",
+    "endTime": "19H00",
+    "type": "free",
+    "discipline": "volley",
+    "subDiscipline": "volley",
+    "zipCode": "75015",
+    "city": "Paris 15",
+    "club": [
+      {
+        "_id": "deadbeef0000000000000029",
+        "showSessionParticipantsOnMobile": true,
+        "name": "LOISIR Evènements",
+        "coverUrl": "https://teamr-assets.s3.amazonaws.com/cover/deadbeef0000000000000029/0000000000.jpg",
+        "logoUrl": "https://teamr-assets.s3.amazonaws.com/logo/deadbeef0000000000000029/0000000000.jpg",
+        "webCoverUrl": ""
+      }
+    ],
+    "tag": "",
+    "requiresTwoParticipants": false,
+    "sessionName": "LOISIR Supplémentaire - Samedi Lacretelle- 17h-19h",
+    "attendees": [],
+    "slot": [
+      {
+        "slotName": "LOISIR Supplémentaire - Samedi Lacretelle- 17h-19h"
+      }
+    ],
+    "yesParticipants": [],
+    "participants": []
+  },
+  {
+    "_id": "deadbeef0000000000000038",
+    "clubId": "deadbeef0000000000000006",
+    "totalQuantity": 0,
+    "totalQuantityFree": 58,
+    "price": 5,
+    "priceForFederation": 5,
+    "priceForMyLicensees": 0,
+    "level": "newbie",
+    "coach": "Coach002 Anonymized",
+    "coachs": [
+      {
+        "coachId": "deadbeef0000000000000017",
+        "fullName": "Coach002 Anonymized",
+        "email": "anon002@example.com",
+        "phone": ""
+      },
+      {
+        "coachId": "deadbeef0000000000000054",
+        "fullName": "Coach003 Anonymized",
+        "email": "anon003@example.com",
+        "phone": ""
+      }
+    ],
+    "status": "",
+    "guests": [],
+    "sold": 0,
+    "slotId": "deadbeef000000000000002e",
+    "date": "2026-05-26T18:30:00.000Z",
+    "time": "20H30",
+    "endTime": "22H30",
+    "type": "training",
+    "discipline": "volley",
+    "subDiscipline": "volley",
+    "zipCode": "75015",
+    "city": "Paris 15",
+    "club": [
+      {
+        "_id": "deadbeef0000000000000006",
+        "showSessionParticipantsOnMobile": false,
+        "name": "LOISIR MARDI FEDERATION",
+        "coverUrl": "https://teamr-assets.s3.amazonaws.com/cover/deadbeef0000000000000006/0000000000.jpeg",
+        "logoUrl": "",
+        "webCoverUrl": "https://teamr-assets.s3.amazonaws.com/webCover/deadbeef0000000000000006/0000000000.jpeg"
+      }
+    ],
+    "tag": "",
+    "requiresTwoParticipants": false,
+    "sessionName": "LOISIR MARDI FEDERATION - Mardi - 20h30-22h30",
+    "attendees": [
+      {
+        "userId": "deadbeef000000000000000e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000016",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000027",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000026",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000023",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000022",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000021",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000009",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000014",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000025",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000013",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000019",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000010",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000012",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000015",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000007",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000024",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000020",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002b",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000040",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000041",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000042",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000043",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000044",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000045",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000049",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000046",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000048",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000047",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004b",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000050",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000052",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000053",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000057",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000005e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000055",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000056",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000005f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000011",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000051",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000006d",
+        "bookingType": "membership"
+      }
+    ],
+    "slot": [
+      {
+        "slotName": "LOISIR MARDI FEDERATION - Mardi - 20h30-22h30"
+      }
+    ],
+    "yesParticipants": [
+      "deadbeef000000000000000e",
+      "deadbeef000000000000001c",
+      "deadbeef000000000000002c",
+      "deadbeef0000000000000016",
+      "deadbeef000000000000000c",
+      "deadbeef0000000000000027",
+      "deadbeef0000000000000026",
+      "deadbeef000000000000001a",
+      "deadbeef0000000000000023",
+      "deadbeef0000000000000022",
+      "deadbeef0000000000000021",
+      "deadbeef0000000000000009",
+      "deadbeef0000000000000014",
+      "deadbeef0000000000000025",
+      "deadbeef0000000000000013",
+      "deadbeef0000000000000019",
+      "deadbeef000000000000000d",
+      "deadbeef000000000000003c",
+      "deadbeef000000000000001f",
+      "deadbeef0000000000000010",
+      "deadbeef000000000000001e",
+      "deadbeef000000000000000f",
+      "deadbeef0000000000000012",
+      "deadbeef0000000000000015",
+      "deadbeef0000000000000007",
+      "deadbeef0000000000000024",
+      "deadbeef0000000000000020",
+      "deadbeef000000000000002b",
+      "deadbeef000000000000003d",
+      "deadbeef000000000000003f",
+      "deadbeef0000000000000040",
+      "deadbeef0000000000000041",
+      "deadbeef0000000000000042",
+      "deadbeef0000000000000043",
+      "deadbeef0000000000000044",
+      "deadbeef0000000000000045",
+      "deadbeef0000000000000049",
+      "deadbeef0000000000000046",
+      "deadbeef0000000000000048",
+      "deadbeef0000000000000047",
+      "deadbeef000000000000004a",
+      "deadbeef000000000000004b",
+      "deadbeef000000000000004d",
+      "deadbeef000000000000004c",
+      "deadbeef000000000000004e",
+      "deadbeef000000000000004f",
+      "deadbeef0000000000000050",
+      "deadbeef0000000000000052",
+      "deadbeef0000000000000053",
+      "deadbeef0000000000000057",
+      "deadbeef000000000000005e",
+      "deadbeef0000000000000055",
+      "deadbeef0000000000000056",
+      "deadbeef000000000000005f",
+      "deadbeef0000000000000011",
+      "deadbeef0000000000000051",
+      "deadbeef000000000000002a",
+      "deadbeef000000000000006d"
+    ],
+    "participants": []
+  },
+  {
+    "_id": "deadbeef000000000000006a",
+    "clubId": "deadbeef0000000000000029",
+    "totalQuantity": 0,
+    "totalQuantityFree": 24,
+    "price": 5,
+    "priceForFederation": 5,
+    "priceForMyLicensees": 0,
+    "level": "allLevels",
+    "coach": "Coach004 Anonymized",
+    "coachs": [
+      {
+        "coachId": "deadbeef000000000000000b",
+        "fullName": "Coach004 Anonymized",
+        "email": "anon004@example.com",
+        "phone": ""
+      },
+      {
+        "coachId": "deadbeef000000000000000a",
+        "fullName": "Coach005 Anonymized",
+        "email": "anon005@example.com",
+        "phone": "REDACTED"
+      }
+    ],
+    "status": "",
+    "guests": [],
+    "sold": 0,
+    "slotId": "deadbeef0000000000000060",
+    "date": "2026-05-30T15:00:00.000Z",
+    "time": "17H00",
+    "endTime": "19H00",
+    "type": "free",
+    "discipline": "volley",
+    "subDiscipline": "volley",
+    "zipCode": "75015",
+    "city": "Paris 15",
+    "club": [
+      {
+        "_id": "deadbeef0000000000000029",
+        "showSessionParticipantsOnMobile": true,
+        "name": "LOISIR Evènements",
+        "coverUrl": "https://teamr-assets.s3.amazonaws.com/cover/deadbeef0000000000000029/0000000000.jpg",
+        "logoUrl": "https://teamr-assets.s3.amazonaws.com/logo/deadbeef0000000000000029/0000000000.jpg",
+        "webCoverUrl": ""
+      }
+    ],
+    "tag": "",
+    "requiresTwoParticipants": false,
+    "sessionName": "LOISIR Supplémentaire - Samedi Lacretelle- 17h-19h",
+    "attendees": [],
+    "slot": [
+      {
+        "slotName": "LOISIR Supplémentaire - Samedi Lacretelle- 17h-19h"
+      }
+    ],
+    "yesParticipants": [],
+    "participants": []
+  },
+  {
+    "_id": "deadbeef000000000000005d",
+    "clubId": "deadbeef0000000000000029",
+    "totalQuantity": 0,
+    "totalQuantityFree": 12,
+    "price": 5,
+    "priceForFederation": 5,
+    "priceForMyLicensees": 0,
+    "level": "allLevels",
+    "coach": "Coach001 Anonymized",
+    "coachs": [
+      {
+        "coachId": "deadbeef0000000000000005",
+        "fullName": "Coach001 Anonymized",
+        "email": "anon001@example.com",
+        "phone": ""
+      },
+      {
+        "fullName": "",
+        "email": "",
+        "phone": ""
+      }
+    ],
+    "status": "⚠️TOURNOI COOL & MIXTE⚠️",
+    "guests": [],
+    "sold": 0,
+    "slotId": "deadbeef000000000000005c",
+    "date": "2026-05-31T07:00:00.000Z",
+    "time": "09H00",
+    "endTime": "15H00",
+    "type": "tournament",
+    "discipline": "volley",
+    "subDiscipline": "volley",
+    "zipCode": "75018",
+    "city": "Paris 18",
+    "club": [
+      {
+        "_id": "deadbeef0000000000000029",
+        "showSessionParticipantsOnMobile": true,
+        "name": "LOISIR Evènements",
+        "coverUrl": "https://teamr-assets.s3.amazonaws.com/cover/deadbeef0000000000000029/0000000000.jpg",
+        "logoUrl": "https://teamr-assets.s3.amazonaws.com/logo/deadbeef0000000000000029/0000000000.jpg",
+        "webCoverUrl": ""
+      }
+    ],
+    "tag": "",
+    "requiresTwoParticipants": false,
+    "sessionName": "Cool & Mixte - Dimanche 31 mai - 09h00-15h00",
+    "attendees": [],
+    "slot": [
+      {
+        "slotName": "Cool & Mixte - Dimanche 31 mai - 09h00-15h00"
+      }
+    ],
+    "yesParticipants": [],
+    "participants": []
+  },
+  {
+    "_id": "deadbeef0000000000000039",
+    "clubId": "deadbeef0000000000000006",
+    "totalQuantity": 0,
+    "totalQuantityFree": 58,
+    "price": 5,
+    "priceForFederation": 5,
+    "priceForMyLicensees": 0,
+    "level": "newbie",
+    "coach": "Coach002 Anonymized",
+    "coachs": [
+      {
+        "coachId": "deadbeef0000000000000017",
+        "fullName": "Coach002 Anonymized",
+        "email": "anon002@example.com",
+        "phone": ""
+      },
+      {
+        "coachId": "deadbeef0000000000000054",
+        "fullName": "Coach003 Anonymized",
+        "email": "anon003@example.com",
+        "phone": ""
+      }
+    ],
+    "status": "",
+    "guests": [],
+    "sold": 0,
+    "slotId": "deadbeef000000000000002e",
+    "date": "2026-06-02T18:30:00.000Z",
+    "time": "20H30",
+    "endTime": "22H30",
+    "type": "training",
+    "discipline": "volley",
+    "subDiscipline": "volley",
+    "zipCode": "75015",
+    "city": "Paris 15",
+    "club": [
+      {
+        "_id": "deadbeef0000000000000006",
+        "showSessionParticipantsOnMobile": false,
+        "name": "LOISIR MARDI FEDERATION",
+        "coverUrl": "https://teamr-assets.s3.amazonaws.com/cover/deadbeef0000000000000006/0000000000.jpeg",
+        "logoUrl": "",
+        "webCoverUrl": "https://teamr-assets.s3.amazonaws.com/webCover/deadbeef0000000000000006/0000000000.jpeg"
+      }
+    ],
+    "tag": "",
+    "requiresTwoParticipants": false,
+    "sessionName": "LOISIR MARDI FEDERATION - Mardi - 20h30-22h30",
+    "attendees": [
+      {
+        "userId": "deadbeef000000000000000e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000016",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000027",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000026",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000023",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000022",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000021",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000009",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000014",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000025",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000013",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000019",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000010",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000012",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000015",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000007",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000024",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000020",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002b",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000040",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000041",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000042",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000043",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000044",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000045",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000049",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000046",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000048",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000047",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004b",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000050",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000052",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000053",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000057",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000005e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000055",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000056",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000005f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000011",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000051",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000006d",
+        "bookingType": "membership"
+      }
+    ],
+    "slot": [
+      {
+        "slotName": "LOISIR MARDI FEDERATION - Mardi - 20h30-22h30"
+      }
+    ],
+    "yesParticipants": [
+      "deadbeef000000000000000e",
+      "deadbeef000000000000001c",
+      "deadbeef000000000000002c",
+      "deadbeef0000000000000016",
+      "deadbeef000000000000000c",
+      "deadbeef0000000000000027",
+      "deadbeef0000000000000026",
+      "deadbeef000000000000001a",
+      "deadbeef0000000000000023",
+      "deadbeef0000000000000022",
+      "deadbeef0000000000000021",
+      "deadbeef0000000000000009",
+      "deadbeef0000000000000014",
+      "deadbeef0000000000000025",
+      "deadbeef0000000000000013",
+      "deadbeef0000000000000019",
+      "deadbeef000000000000000d",
+      "deadbeef000000000000003c",
+      "deadbeef000000000000001f",
+      "deadbeef0000000000000010",
+      "deadbeef000000000000001e",
+      "deadbeef000000000000000f",
+      "deadbeef0000000000000012",
+      "deadbeef0000000000000015",
+      "deadbeef0000000000000007",
+      "deadbeef0000000000000024",
+      "deadbeef0000000000000020",
+      "deadbeef000000000000002b",
+      "deadbeef000000000000003d",
+      "deadbeef000000000000003f",
+      "deadbeef0000000000000040",
+      "deadbeef0000000000000041",
+      "deadbeef0000000000000042",
+      "deadbeef0000000000000043",
+      "deadbeef0000000000000044",
+      "deadbeef0000000000000045",
+      "deadbeef0000000000000049",
+      "deadbeef0000000000000046",
+      "deadbeef0000000000000048",
+      "deadbeef0000000000000047",
+      "deadbeef000000000000004a",
+      "deadbeef000000000000004b",
+      "deadbeef000000000000004d",
+      "deadbeef000000000000004c",
+      "deadbeef000000000000004e",
+      "deadbeef000000000000004f",
+      "deadbeef0000000000000050",
+      "deadbeef0000000000000052",
+      "deadbeef0000000000000053",
+      "deadbeef0000000000000057",
+      "deadbeef000000000000005e",
+      "deadbeef0000000000000055",
+      "deadbeef0000000000000056",
+      "deadbeef000000000000005f",
+      "deadbeef0000000000000011",
+      "deadbeef0000000000000051",
+      "deadbeef000000000000002a",
+      "deadbeef000000000000006d"
+    ],
+    "participants": []
+  },
+  {
+    "_id": "deadbeef000000000000006b",
+    "clubId": "deadbeef0000000000000029",
+    "totalQuantity": 0,
+    "totalQuantityFree": 24,
+    "price": 5,
+    "priceForFederation": 5,
+    "priceForMyLicensees": 0,
+    "level": "allLevels",
+    "coach": "Coach004 Anonymized",
+    "coachs": [
+      {
+        "coachId": "deadbeef000000000000000b",
+        "fullName": "Coach004 Anonymized",
+        "email": "anon004@example.com",
+        "phone": ""
+      },
+      {
+        "coachId": "deadbeef000000000000000a",
+        "fullName": "Coach005 Anonymized",
+        "email": "anon005@example.com",
+        "phone": "REDACTED"
+      }
+    ],
+    "status": "",
+    "guests": [],
+    "sold": 0,
+    "slotId": "deadbeef0000000000000060",
+    "date": "2026-06-06T15:00:00.000Z",
+    "time": "17H00",
+    "endTime": "19H00",
+    "type": "free",
+    "discipline": "volley",
+    "subDiscipline": "volley",
+    "zipCode": "75015",
+    "city": "Paris 15",
+    "club": [
+      {
+        "_id": "deadbeef0000000000000029",
+        "showSessionParticipantsOnMobile": true,
+        "name": "LOISIR Evènements",
+        "coverUrl": "https://teamr-assets.s3.amazonaws.com/cover/deadbeef0000000000000029/0000000000.jpg",
+        "logoUrl": "https://teamr-assets.s3.amazonaws.com/logo/deadbeef0000000000000029/0000000000.jpg",
+        "webCoverUrl": ""
+      }
+    ],
+    "tag": "",
+    "requiresTwoParticipants": false,
+    "sessionName": "LOISIR Supplémentaire - Samedi Lacretelle- 17h-19h",
+    "attendees": [],
+    "slot": [
+      {
+        "slotName": "LOISIR Supplémentaire - Samedi Lacretelle- 17h-19h"
+      }
+    ],
+    "yesParticipants": [],
+    "participants": []
+  },
+  {
+    "_id": "deadbeef000000000000003a",
+    "clubId": "deadbeef0000000000000006",
+    "totalQuantity": 0,
+    "totalQuantityFree": 58,
+    "price": 5,
+    "priceForFederation": 5,
+    "priceForMyLicensees": 0,
+    "level": "newbie",
+    "coach": "Coach002 Anonymized",
+    "coachs": [
+      {
+        "coachId": "deadbeef0000000000000017",
+        "fullName": "Coach002 Anonymized",
+        "email": "anon002@example.com",
+        "phone": ""
+      },
+      {
+        "coachId": "deadbeef0000000000000054",
+        "fullName": "Coach003 Anonymized",
+        "email": "anon003@example.com",
+        "phone": ""
+      }
+    ],
+    "status": "",
+    "guests": [],
+    "sold": 0,
+    "slotId": "deadbeef000000000000002e",
+    "date": "2026-06-09T18:30:00.000Z",
+    "time": "20H30",
+    "endTime": "22H30",
+    "type": "training",
+    "discipline": "volley",
+    "subDiscipline": "volley",
+    "zipCode": "75015",
+    "city": "Paris 15",
+    "club": [
+      {
+        "_id": "deadbeef0000000000000006",
+        "showSessionParticipantsOnMobile": false,
+        "name": "LOISIR MARDI FEDERATION",
+        "coverUrl": "https://teamr-assets.s3.amazonaws.com/cover/deadbeef0000000000000006/0000000000.jpeg",
+        "logoUrl": "",
+        "webCoverUrl": "https://teamr-assets.s3.amazonaws.com/webCover/deadbeef0000000000000006/0000000000.jpeg"
+      }
+    ],
+    "tag": "",
+    "requiresTwoParticipants": false,
+    "sessionName": "LOISIR MARDI FEDERATION - Mardi - 20h30-22h30",
+    "attendees": [
+      {
+        "userId": "deadbeef000000000000000e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000016",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000027",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000026",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000023",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000022",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000021",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000009",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000014",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000025",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000013",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000019",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000010",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000012",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000015",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000007",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000024",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000020",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002b",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000040",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000041",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000042",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000043",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000044",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000045",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000049",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000046",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000048",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000047",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004b",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000050",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000052",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000053",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000057",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000005e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000055",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000056",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000005f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000011",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000051",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000006d",
+        "bookingType": "membership"
+      }
+    ],
+    "slot": [
+      {
+        "slotName": "LOISIR MARDI FEDERATION - Mardi - 20h30-22h30"
+      }
+    ],
+    "yesParticipants": [
+      "deadbeef000000000000000e",
+      "deadbeef000000000000001c",
+      "deadbeef000000000000002c",
+      "deadbeef0000000000000016",
+      "deadbeef000000000000000c",
+      "deadbeef0000000000000027",
+      "deadbeef0000000000000026",
+      "deadbeef000000000000001a",
+      "deadbeef0000000000000023",
+      "deadbeef0000000000000022",
+      "deadbeef0000000000000021",
+      "deadbeef0000000000000009",
+      "deadbeef0000000000000014",
+      "deadbeef0000000000000025",
+      "deadbeef0000000000000013",
+      "deadbeef0000000000000019",
+      "deadbeef000000000000000d",
+      "deadbeef000000000000003c",
+      "deadbeef000000000000001f",
+      "deadbeef0000000000000010",
+      "deadbeef000000000000001e",
+      "deadbeef000000000000000f",
+      "deadbeef0000000000000012",
+      "deadbeef0000000000000015",
+      "deadbeef0000000000000007",
+      "deadbeef0000000000000024",
+      "deadbeef0000000000000020",
+      "deadbeef000000000000002b",
+      "deadbeef000000000000003d",
+      "deadbeef000000000000003f",
+      "deadbeef0000000000000040",
+      "deadbeef0000000000000041",
+      "deadbeef0000000000000042",
+      "deadbeef0000000000000043",
+      "deadbeef0000000000000044",
+      "deadbeef0000000000000045",
+      "deadbeef0000000000000049",
+      "deadbeef0000000000000046",
+      "deadbeef0000000000000048",
+      "deadbeef0000000000000047",
+      "deadbeef000000000000004a",
+      "deadbeef000000000000004b",
+      "deadbeef000000000000004d",
+      "deadbeef000000000000004c",
+      "deadbeef000000000000004e",
+      "deadbeef000000000000004f",
+      "deadbeef0000000000000050",
+      "deadbeef0000000000000052",
+      "deadbeef0000000000000053",
+      "deadbeef0000000000000057",
+      "deadbeef000000000000005e",
+      "deadbeef0000000000000055",
+      "deadbeef0000000000000056",
+      "deadbeef000000000000005f",
+      "deadbeef0000000000000011",
+      "deadbeef0000000000000051",
+      "deadbeef000000000000002a",
+      "deadbeef000000000000006d"
+    ],
+    "participants": []
+  },
+  {
+    "_id": "deadbeef000000000000006c",
+    "clubId": "deadbeef0000000000000029",
+    "totalQuantity": 0,
+    "totalQuantityFree": 24,
+    "price": 5,
+    "priceForFederation": 5,
+    "priceForMyLicensees": 0,
+    "level": "allLevels",
+    "coach": "Coach004 Anonymized",
+    "coachs": [
+      {
+        "coachId": "deadbeef000000000000000b",
+        "fullName": "Coach004 Anonymized",
+        "email": "anon004@example.com",
+        "phone": ""
+      },
+      {
+        "coachId": "deadbeef000000000000000a",
+        "fullName": "Coach005 Anonymized",
+        "email": "anon005@example.com",
+        "phone": "REDACTED"
+      }
+    ],
+    "status": "",
+    "guests": [],
+    "sold": 0,
+    "slotId": "deadbeef0000000000000060",
+    "date": "2026-06-13T15:00:00.000Z",
+    "time": "17H00",
+    "endTime": "19H00",
+    "type": "free",
+    "discipline": "volley",
+    "subDiscipline": "volley",
+    "zipCode": "75015",
+    "city": "Paris 15",
+    "club": [
+      {
+        "_id": "deadbeef0000000000000029",
+        "showSessionParticipantsOnMobile": true,
+        "name": "LOISIR Evènements",
+        "coverUrl": "https://teamr-assets.s3.amazonaws.com/cover/deadbeef0000000000000029/0000000000.jpg",
+        "logoUrl": "https://teamr-assets.s3.amazonaws.com/logo/deadbeef0000000000000029/0000000000.jpg",
+        "webCoverUrl": ""
+      }
+    ],
+    "tag": "",
+    "requiresTwoParticipants": false,
+    "sessionName": "LOISIR Supplémentaire - Samedi Lacretelle- 17h-19h",
+    "attendees": [],
+    "slot": [
+      {
+        "slotName": "LOISIR Supplémentaire - Samedi Lacretelle- 17h-19h"
+      }
+    ],
+    "yesParticipants": [],
+    "participants": []
+  },
+  {
+    "_id": "deadbeef000000000000003b",
+    "clubId": "deadbeef0000000000000006",
+    "totalQuantity": 0,
+    "totalQuantityFree": 58,
+    "price": 5,
+    "priceForFederation": 5,
+    "priceForMyLicensees": 0,
+    "level": "newbie",
+    "coach": "Coach002 Anonymized",
+    "coachs": [
+      {
+        "coachId": "deadbeef0000000000000017",
+        "fullName": "Coach002 Anonymized",
+        "email": "anon002@example.com",
+        "phone": ""
+      },
+      {
+        "coachId": "deadbeef0000000000000054",
+        "fullName": "Coach003 Anonymized",
+        "email": "anon003@example.com",
+        "phone": ""
+      }
+    ],
+    "status": "",
+    "guests": [],
+    "sold": 0,
+    "slotId": "deadbeef000000000000002e",
+    "date": "2026-06-16T18:30:00.000Z",
+    "time": "20H30",
+    "endTime": "22H30",
+    "type": "training",
+    "discipline": "volley",
+    "subDiscipline": "volley",
+    "zipCode": "75015",
+    "city": "Paris 15",
+    "club": [
+      {
+        "_id": "deadbeef0000000000000006",
+        "showSessionParticipantsOnMobile": false,
+        "name": "LOISIR MARDI FEDERATION",
+        "coverUrl": "https://teamr-assets.s3.amazonaws.com/cover/deadbeef0000000000000006/0000000000.jpeg",
+        "logoUrl": "",
+        "webCoverUrl": "https://teamr-assets.s3.amazonaws.com/webCover/deadbeef0000000000000006/0000000000.jpeg"
+      }
+    ],
+    "tag": "",
+    "requiresTwoParticipants": false,
+    "sessionName": "LOISIR MARDI FEDERATION - Mardi - 20h30-22h30",
+    "attendees": [
+      {
+        "userId": "deadbeef000000000000000e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000016",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000027",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000026",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000023",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000022",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000021",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000009",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000014",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000025",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000013",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000019",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000010",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000001e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000000f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000012",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000015",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000007",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000024",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000020",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002b",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000003f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000040",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000041",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000042",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000043",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000044",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000045",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000049",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000046",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000048",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000047",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004b",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004d",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004c",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000004f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000050",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000052",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000053",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000057",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000005e",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000055",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000056",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000005f",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000011",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef0000000000000051",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000002a",
+        "bookingType": "membership"
+      },
+      {
+        "userId": "deadbeef000000000000006d",
+        "bookingType": "membership"
+      }
+    ],
+    "slot": [
+      {
+        "slotName": "LOISIR MARDI FEDERATION - Mardi - 20h30-22h30"
+      }
+    ],
+    "yesParticipants": [
+      "deadbeef000000000000000e",
+      "deadbeef000000000000001c",
+      "deadbeef000000000000002c",
+      "deadbeef0000000000000016",
+      "deadbeef000000000000000c",
+      "deadbeef0000000000000027",
+      "deadbeef0000000000000026",
+      "deadbeef000000000000001a",
+      "deadbeef0000000000000023",
+      "deadbeef0000000000000022",
+      "deadbeef0000000000000021",
+      "deadbeef0000000000000009",
+      "deadbeef0000000000000014",
+      "deadbeef0000000000000025",
+      "deadbeef0000000000000013",
+      "deadbeef0000000000000019",
+      "deadbeef000000000000000d",
+      "deadbeef000000000000003c",
+      "deadbeef000000000000001f",
+      "deadbeef0000000000000010",
+      "deadbeef000000000000001e",
+      "deadbeef000000000000000f",
+      "deadbeef0000000000000012",
+      "deadbeef0000000000000015",
+      "deadbeef0000000000000007",
+      "deadbeef0000000000000024",
+      "deadbeef0000000000000020",
+      "deadbeef000000000000002b",
+      "deadbeef000000000000003d",
+      "deadbeef000000000000003f",
+      "deadbeef0000000000000040",
+      "deadbeef0000000000000041",
+      "deadbeef0000000000000042",
+      "deadbeef0000000000000043",
+      "deadbeef0000000000000044",
+      "deadbeef0000000000000045",
+      "deadbeef0000000000000049",
+      "deadbeef0000000000000046",
+      "deadbeef0000000000000048",
+      "deadbeef0000000000000047",
+      "deadbeef000000000000004a",
+      "deadbeef000000000000004b",
+      "deadbeef000000000000004d",
+      "deadbeef000000000000004c",
+      "deadbeef000000000000004e",
+      "deadbeef000000000000004f",
+      "deadbeef0000000000000050",
+      "deadbeef0000000000000052",
+      "deadbeef0000000000000053",
+      "deadbeef0000000000000057",
+      "deadbeef000000000000005e",
+      "deadbeef0000000000000055",
+      "deadbeef0000000000000056",
+      "deadbeef000000000000005f",
+      "deadbeef0000000000000011",
+      "deadbeef0000000000000051",
+      "deadbeef000000000000002a",
+      "deadbeef000000000000006d"
+    ],
+    "participants": []
+  }
+]
