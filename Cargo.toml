@@ -1,16 +1,58 @@
 [package]
 name = "monclub-bot"
-version = "1.0.0"
+version = "2.0.0"
 edition = "2024"
+authors = ["Tom Planche <tomplanche@proton.me>"]
+description = "MonClub session booking and cancellation — CLI and Discord bot"
+default-run = "monclub-bot"
+
+[[bin]]
+name = "monclub-bot"
+path = "src/main.rs"
+
+[[bin]]
+name = "monclub-discord"
+path = "src/bin/discord.rs"
+required-features = ["discord"]
+
+[features]
+discord = ["dep:poise", "dep:tokio"]
 
 [dependencies]
 anyhow = "1"
 inquire = { git = "https://github.com/TomPlanche/inquire", branch = "tomPlanche/feat/tubular-multiselect" }
 chrono = "0.4"
 dotenvy = "0.15"
-simplelog = "0.12"
-log = "0.4"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing-appender = "0.2"
 reqwest = { version = "0.12", features = ["blocking", "json"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "2"
+poise = { version = "0.6", optional = true }
+tokio = { version = "1", features = ["full"], optional = true }
+
+[lints.rust]
+# Hard-ban unsafe; this codebase has no need for it
+unsafe_code = "forbid"
+# All public types should be inspectable in logs/tests
+missing_debug_implementations = "warn"
+# Catch `pub` items invisible from the crate root (private parent module)
+unreachable_pub = "warn"
+
+[lints.clippy]
+# Full pedantic set as baseline — priority -1 so specific rules below can override
+pedantic = { level = "warn", priority = -1 }
+
+# --- Suppressed pedantic lints (with rationale) ---
+
+# Not worth documenting for a personal internal tool
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+
+# `client::MonClubClient`, `config::Config` etc. are idiomatic Rust naming
+module_name_repetitions = "allow"
+
+# Most functions here don't need caller-side enforcement via `#[must_use]`
+must_use_candidate = "allow"
