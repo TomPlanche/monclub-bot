@@ -3,14 +3,14 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 use anyhow::{Result, anyhow};
-use inquire::{Confirm, Select};
 use inquire::tabular::{ColumnAlignment, ColumnConfig};
-use log::{info, warn};
+use inquire::{Confirm, Select};
 use reqwest::blocking::Client;
 use reqwest::header::{ACCEPT, ACCEPT_LANGUAGE, CONTENT_TYPE, HeaderMap, HeaderValue, USER_AGENT};
 use serde::Deserialize;
 use serde_json::{Value, json};
 use thiserror::Error;
+use tracing::{info, warn};
 
 use crate::config::Config;
 
@@ -48,7 +48,11 @@ pub struct Session {
 
 impl fmt::Display for Session {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let date = self.date.as_deref().and_then(|d| d.get(..10)).unwrap_or("?");
+        let date = self
+            .date
+            .as_deref()
+            .and_then(|d| d.get(..10))
+            .unwrap_or("?");
         write!(
             f,
             "{} | {} | {}",
@@ -86,7 +90,8 @@ impl fmt::Display for Booking {
         write!(
             f,
             "{} | {} | {}",
-            s.and_then(|s| s.name.as_deref()).unwrap_or(&self.session_id),
+            s.and_then(|s| s.name.as_deref())
+                .unwrap_or(&self.session_id),
             date,
             s.and_then(|s| s.time.as_deref()).unwrap_or("?"),
         )
@@ -116,7 +121,6 @@ pub enum BookError {
     Request(#[from] reqwest::Error),
 }
 
-
 fn deserialize_array<T: serde::de::DeserializeOwned>(raw: Value) -> Result<Vec<T>> {
     match raw {
         Value::Array(_) => Ok(serde_json::from_value(raw)?),
@@ -129,6 +133,15 @@ pub struct MonClubClient {
     http: Client,
     token: Option<String>,
     user_id: Option<String>,
+}
+
+impl fmt::Debug for MonClubClient {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("MonClubClient")
+            .field("user_id", &self.user_id)
+            .field("token", &self.token.as_ref().map(|_| "<redacted>"))
+            .finish_non_exhaustive()
+    }
 }
 
 impl MonClubClient {
@@ -145,7 +158,12 @@ impl MonClubClient {
             .build()
             .expect("Failed to build HTTP client");
 
-        Self { config, http, token: None, user_id: None }
+        Self {
+            config,
+            http,
+            token: None,
+            user_id: None,
+        }
     }
 
     fn token(&self) -> &str {
@@ -170,7 +188,8 @@ impl MonClubClient {
             .error_for_status()?;
 
         info!("Step 2 - full authentication...");
-        let data: AuthResponse = self.http
+        let data: AuthResponse = self
+            .http
             .post(self.endpoint("/users/custom/authenticate/v2"))
             .json(&json!({
                 "credentials": {
@@ -201,13 +220,14 @@ impl MonClubClient {
         Ok(())
     }
 
-    fn list_sessions(&self) -> Result<Vec<Session>> {
+    pub fn list_sessions(&self) -> Result<Vec<Session>> {
         let coords = match (self.config.longitude, self.config.latitude) {
             (Some(lon), Some(lat)) => json!([lon, lat]),
             _ => json!(null),
         };
 
-        let raw: Value = self.http
+        let raw: Value = self
+            .http
             .post(self.endpoint("/nearfilters/favorite/myclub"))
             .header("authorization", self.token())
             .query(&[
@@ -238,8 +258,9 @@ impl MonClubClient {
         deserialize_array(raw)
     }
 
-    fn list_bookings(&self) -> Result<Vec<Booking>> {
-        let raw: Value = self.http
+    pub fn list_bookings(&self) -> Result<Vec<Booking>> {
+        let raw: Value = self
+            .http
             .get(self.endpoint(&format!("/bookings/user/{}", self.user_id())))
             .header("authorization", self.token())
             .query(&[("category", "ondemand"), ("temporality", "fromToday")])
@@ -269,10 +290,11 @@ impl MonClubClient {
         Ok(Some(session))
     }
 
-    fn book_session(&self, session: &Session) -> Result<Value, BookError> {
+    pub fn book_session(&self, session: &Session) -> Result<Value, BookError> {
         info!("Booking '{}' (id={})...", session, session.id);
 
-        let resp = self.http
+        let resp = self
+            .http
             .post(self.endpoint("/sessions/book/licenseeFromClub"))
             .header("authorization", self.token())
             .json(&json!({
@@ -293,10 +315,11 @@ impl MonClubClient {
         Ok(resp.error_for_status()?.json()?)
     }
 
-    fn cancel_booking(&self, booking: &Booking) -> Result<Value> {
+    pub fn cancel_booking(&self, booking: &Booking) -> Result<Value> {
         info!("Cancelling '{}' (bookingId={})...", booking, booking.id);
 
-        Ok(self.http
+        Ok(self
+            .http
             .post(self.endpoint("/sessions/book/licenseeFromClub"))
             .header("authorization", self.token())
             .json(&json!({
@@ -320,14 +343,17 @@ impl MonClubClient {
 
         loop {
             attempt += 1;
-            info!("Attempt {} - searching for target session...", attempt);
+            info!("Attempt {attempt} - searching for target session...");
 
             let Some(session) = self.find_target_session()? else {
                 if Instant::now() >= deadline {
                     eprintln!("Session not found after retries. Giving up.");
                     std::process::exit(1);
                 }
-                println!("No matching session yet. Retrying in {}s...", self.config.retry_interval);
+                println!(
+                    "No matching session yet. Retrying in {}s...",
+                    self.config.retry_interval
+                );
                 thread::sleep(Duration::from_secs(self.config.retry_interval));
                 continue;
             };
@@ -347,8 +373,11 @@ impl MonClubClient {
                     return Ok(());
                 }
                 Err(BookError::SlotNotOpen(body)) => {
-                    warn!("409 slot not open yet: {}", body);
-                    println!("Slot not open yet. Retrying in {}s...", self.config.retry_interval);
+                    warn!("409 slot not open yet: {body}");
+                    println!(
+                        "Slot not open yet. Retrying in {}s...",
+                        self.config.retry_interval
+                    );
                     if Instant::now() >= deadline {
                         eprintln!("Booking window expired.");
                         std::process::exit(1);
@@ -396,8 +425,11 @@ impl MonClubClient {
     pub fn run(&mut self) -> Result<()> {
         self.authenticate()?;
 
-        let action = Select::new("What would you like to do?", vec![Action::Book, Action::Cancel])
-            .prompt()?;
+        let action = Select::new(
+            "What would you like to do?",
+            vec![Action::Book, Action::Cancel],
+        )
+        .prompt()?;
 
         match action {
             Action::Book => self.run_book(),

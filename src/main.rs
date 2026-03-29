@@ -1,18 +1,10 @@
-mod client;
-mod config;
-
-use simplelog::{Config, LevelFilter, WriteLogger};
-use std::fs::File;
+use monclub_bot::{client, config, logging};
 
 fn main() {
-    WriteLogger::init(
-        LevelFilter::Debug,
-        Config::default(),
-        File::create("monclub-bot.log").expect("failed to create log file"),
-    )
-    .expect("failed to init logger");
-
+    // Load .env before logging so RUST_LOG set there is picked up.
     dotenvy::dotenv().ok();
+
+    let _guard = logging::init("monclub-bot", false);
 
     let config = config::Config::from_env();
     if let Err(e) = client::MonClubClient::new(config).run() {
