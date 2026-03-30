@@ -9,7 +9,6 @@ All raw captures are saved under `./assets/`:
 | [`assets/post_all_events.folder/`](./assets/post_all_events.folder/) | `POST /nearfilters/favorite/myclub` — request and response for listing all club sessions |
 | [`assets/book_session.folder/`](./assets/book_session.folder/) | `POST /sessions/book/licenseeFromClub` — request and response for booking a session |
 | [`assets/cancel_session.folder/`](./assets/cancel_session.folder/) | `POST /sessions/book/licenseeFromClub` — request and response for cancelling a booking |
-| [`assets/post_all_events.har`](./assets/post_all_events.har) | Full HAR export of the session listing flow |
 
 ## Key IDs
 
