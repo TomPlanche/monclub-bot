@@ -1,0 +1,452 @@
+HTTP/1.1 200 OK
+Content-Encoding: br
+Content-Type: application/json; charset=utf-8
+Date: Sun, 22 Mar 2026 12:00:00 GMT
+Etag: W/"00000-FAKEETAG0000000000000"
+Nel: {"report_to":"heroku-nel","response_headers":["Via"],"max_age":3600,"success_fraction":0.01,"failure_fraction":0.1}
+Report-To: {"group":"heroku-nel","endpoints":[{"url":"https://nel.example.com/reports?REDACTED\u0026sid=00000000-0000-0000-0000-000000000001\u0026ts=0000000000"}],"max_age":3600}
+Reporting-Endpoints: heroku-nel="https://nel.example.com/reports?REDACTED"
+Server: Heroku
+Strict-Transport-Security: max-age=15552000; includeSubDomains
+Vary: Accept-Encoding
+Via: 1.1 heroku-router
+X-Content-Type-Options: nosniff
+X-Dns-Prefetch-Control: off
+X-Download-Options: noopen
+X-Frame-Options: SAMEORIGIN
+X-Xss-Protection: 1; mode=block
+Transfer-Encoding: chunked
+
+{
+  "session": {
+    "_id": "deadbeef0000000000000003",
+    "clubId": "deadbeef0000000000000005",
+    "totalQuantity": 0,
+    "totalQuantityFree": 24,
+    "price": 5,
+    "priceForFederation": 5,
+    "priceForMyLicensees": 0,
+    "level": "allLevels",
+    "coach": "Coach ANONYMIZED",
+    "coachPhone": "",
+    "coachEmail": "coach@example.com",
+    "coachs": [
+      {
+        "_id": "deadbeef000000000000000a",
+        "email": "anon01@example.com",
+        "firstName": "Coach01",
+        "lastName": "ANONYMIZED",
+        "profileUrl": "https://assets.example.com/profile/deadbeef000000000000000a.jpeg",
+        "fullName": "Coach01 ANONYMIZED"
+      },
+      {
+        "_id": "deadbeef000000000000000b",
+        "email": "coach@example.com",
+        "firstName": "Coach",
+        "lastName": "ANONYMIZED",
+        "profileUrl": "https://assets.example.com/profile/deadbeef000000000000000b.jpg",
+        "fullName": "Coach ANONYMIZED"
+      }
+    ],
+    "status": "",
+    "isAttendeesListValidated": false,
+    "participants": [],
+    "yesParticipants": [
+      "deadbeef0000000000000010",
+      "deadbeef0000000000000011",
+      "deadbeef0000000000000012",
+      "deadbeef0000000000000013",
+      "deadbeef0000000000000014",
+      "deadbeef0000000000000015",
+      "deadbeef0000000000000016",
+      "deadbeef0000000000000017",
+      "deadbeef0000000000000018",
+      "deadbeef0000000000000019",
+      "deadbeef000000000000001a",
+      "deadbeef000000000000001b",
+      "deadbeef000000000000001c",
+      "deadbeef000000000000001d",
+      "deadbeef000000000000001e",
+      "deadbeef000000000000001f",
+      "deadbeef0000000000000020",
+      "deadbeef0000000000000021",
+      "deadbeef0000000000000022",
+      "deadbeef0000000000000023",
+      "deadbeef0000000000000024",
+      "deadbeef0000000000000025",
+      "deadbeef0000000000000001",
+      "deadbeef0000000000000026"
+    ],
+    "guests": [],
+    "noParticipants": [],
+    "maybeParticipants": [],
+    "sold": 0,
+    "slotId": "deadbeef0000000000000004",
+    "date": "2026-04-04T15:00:00.000Z",
+    "time": "17H00",
+    "endTime": "19H00",
+    "category": "ondemand",
+    "type": "free",
+    "discipline": "volley",
+    "subDiscipline": "volley",
+    "address": "1 rue Example",
+    "zipCode": "75000",
+    "city": "Paris",
+    "place": {
+      "_id": "deadbeef0000000000000008",
+      "name": "Site Example (Gymnase Example)",
+      "address": "1 rue Example",
+      "zipCode": "75000",
+      "city": "Paris"
+    },
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        2.0000000,
+        48.0000000
+      ],
+      "_id": "deadbeef0000000000000009"
+    },
+    "deleted": false,
+    "club": [
+      {
+        "_id": "deadbeef0000000000000005",
+        "oneClickOneSlotBooking": false,
+        "showSessionParticipantsOnMobile": true,
+        "discipline": "volley",
+        "name": "Club Name ANONYMIZED",
+        "mangoId": "0000000000",
+        "walletId": "0000000001",
+        "parentId": {
+          "_id": "deadbeef0000000000000006",
+          "oneClickOneSlotBooking": false,
+          "showSessionParticipantsOnMobile": false,
+          "discipline": "volley",
+          "name": "Parent Club ANONYMIZED",
+          "mangoId": "0000000000",
+          "walletId": "0000000001",
+          "coverUrl": "https://assets.example.com/cover/deadbeef0000000000000006/0000000000.jpeg",
+          "logoUrl": "https://assets.example.com/logo/deadbeef0000000000000006/0000000000.jpeg",
+          "webCoverUrl": "https://assets.example.com/webCover/deadbeef0000000000000006/0000000000.jpeg"
+        },
+        "description": "Club description ANONYMIZED",
+        "disciplineDescription": "",
+        "coverUrl": "https://assets.example.com/cover/deadbeef0000000000000005/0000000000.jpg",
+        "logoUrl": "https://assets.example.com/logo/deadbeef0000000000000005/0000000000.jpg",
+        "webCoverUrl": "",
+        "attendeesMode": "presentByDefault"
+      }
+    ],
+    "info": "Sur inscription préalable via l'application",
+    "description": "Jeu libre",
+    "customId": "deadbeef0000000000000002",
+    "tag": "",
+    "requiresTwoParticipants": false,
+    "videoUrl": "",
+    "seasonId": "deadbeef0000000000000007",
+    "nbOfTickets": 1,
+    "sessionName": "Session ANONYMIZED",
+    "attendees": [
+      {
+        "userId": "deadbeef0000000000000010",
+        "memberNumber": 1001,
+        "fullName": "User01 ANONYMIZED",
+        "attendeeResponse": { "response": "noResponse", "absenceReason": "" },
+        "coachResponse": { "response": "noResponse", "absenceReason": "", "isJustified": false, "status": "onTime" },
+        "deleted": false,
+        "bookingType": "membershipWithReservation",
+        "evaluationGrids": [],
+        "attendanceStatus": "noResponse"
+      },
+      {
+        "userId": "deadbeef0000000000000011",
+        "memberNumber": 1002,
+        "fullName": "User02 ANONYMIZED",
+        "attendeeResponse": { "response": "noResponse", "absenceReason": "" },
+        "coachResponse": { "response": "noResponse", "absenceReason": "", "isJustified": false, "status": "onTime" },
+        "deleted": false,
+        "bookingType": "membershipWithReservation",
+        "evaluationGrids": [],
+        "attendanceStatus": "noResponse"
+      },
+      {
+        "userId": "deadbeef0000000000000012",
+        "memberNumber": 1003,
+        "fullName": "User03 ANONYMIZED",
+        "attendeeResponse": { "response": "noResponse", "absenceReason": "" },
+        "coachResponse": { "response": "noResponse", "absenceReason": "", "isJustified": false, "status": "onTime" },
+        "deleted": false,
+        "bookingType": "membershipWithReservation",
+        "evaluationGrids": [],
+        "attendanceStatus": "noResponse"
+      },
+      {
+        "userId": "deadbeef0000000000000013",
+        "memberNumber": 1004,
+        "fullName": "User04 ANONYMIZED",
+        "attendeeResponse": { "response": "noResponse", "absenceReason": "" },
+        "coachResponse": { "response": "noResponse", "absenceReason": "", "isJustified": false, "status": "onTime" },
+        "deleted": false,
+        "bookingType": "membershipWithReservation",
+        "evaluationGrids": [],
+        "attendanceStatus": "noResponse"
+      },
+      {
+        "userId": "deadbeef0000000000000014",
+        "memberNumber": 1005,
+        "fullName": "User05 ANONYMIZED",
+        "attendeeResponse": { "response": "noResponse", "absenceReason": "" },
+        "coachResponse": { "response": "noResponse", "absenceReason": "", "isJustified": false, "status": "onTime" },
+        "deleted": false,
+        "bookingType": "membershipWithReservation",
+        "evaluationGrids": [],
+        "attendanceStatus": "noResponse"
+      },
+      {
+        "userId": "deadbeef0000000000000015",
+        "memberNumber": 1006,
+        "fullName": "User06 ANONYMIZED",
+        "attendeeResponse": { "response": "noResponse", "absenceReason": "" },
+        "coachResponse": { "response": "noResponse", "absenceReason": "", "isJustified": false, "status": "onTime" },
+        "deleted": false,
+        "bookingType": "membershipWithReservation",
+        "evaluationGrids": [],
+        "attendanceStatus": "noResponse"
+      },
+      {
+        "userId": "deadbeef0000000000000016",
+        "memberNumber": 1007,
+        "fullName": "User07 ANONYMIZED",
+        "attendeeResponse": { "response": "noResponse", "absenceReason": "" },
+        "coachResponse": { "response": "noResponse", "absenceReason": "", "isJustified": false, "status": "onTime" },
+        "deleted": false,
+        "bookingType": "membershipWithReservation",
+        "evaluationGrids": [],
+        "attendanceStatus": "noResponse"
+      },
+      {
+        "userId": "deadbeef0000000000000017",
+        "memberNumber": 1008,
+        "fullName": "User08 ANONYMIZED",
+        "attendeeResponse": { "response": "noResponse", "absenceReason": "" },
+        "coachResponse": { "response": "noResponse", "absenceReason": "", "isJustified": false, "status": "onTime" },
+        "deleted": false,
+        "bookingType": "membershipWithReservation",
+        "evaluationGrids": [],
+        "attendanceStatus": "noResponse"
+      },
+      {
+        "userId": "deadbeef0000000000000018",
+        "memberNumber": 1009,
+        "fullName": "User09 ANONYMIZED",
+        "attendeeResponse": { "response": "noResponse", "absenceReason": "" },
+        "coachResponse": { "response": "noResponse", "absenceReason": "", "isJustified": false, "status": "onTime" },
+        "deleted": false,
+        "bookingType": "membershipWithReservation",
+        "evaluationGrids": [],
+        "attendanceStatus": "noResponse"
+      },
+      {
+        "userId": "deadbeef0000000000000019",
+        "memberNumber": 1010,
+        "fullName": "User10 ANONYMIZED",
+        "attendeeResponse": { "response": "noResponse", "absenceReason": "" },
+        "coachResponse": { "response": "noResponse", "absenceReason": "", "isJustified": false, "status": "onTime" },
+        "deleted": false,
+        "bookingType": "membershipWithReservation",
+        "evaluationGrids": [],
+        "attendanceStatus": "noResponse"
+      },
+      {
+        "userId": "deadbeef000000000000001a",
+        "memberNumber": 1011,
+        "fullName": "User11 ANONYMIZED",
+        "attendeeResponse": { "response": "noResponse", "absenceReason": "" },
+        "coachResponse": { "response": "noResponse", "absenceReason": "", "isJustified": false, "status": "onTime" },
+        "deleted": false,
+        "bookingType": "membershipWithReservation",
+        "evaluationGrids": [],
+        "attendanceStatus": "noResponse"
+      },
+      {
+        "userId": "deadbeef000000000000001b",
+        "memberNumber": 1012,
+        "fullName": "User12 ANONYMIZED",
+        "attendeeResponse": { "response": "noResponse", "absenceReason": "" },
+        "coachResponse": { "response": "noResponse", "absenceReason": "", "isJustified": false, "status": "onTime" },
+        "deleted": false,
+        "bookingType": "membershipWithReservation",
+        "evaluationGrids": [],
+        "attendanceStatus": "noResponse"
+      },
+      {
+        "userId": "deadbeef000000000000001c",
+        "memberNumber": 1013,
+        "fullName": "User13 ANONYMIZED",
+        "attendeeResponse": { "response": "noResponse", "absenceReason": "" },
+        "coachResponse": { "response": "noResponse", "absenceReason": "", "isJustified": false, "status": "onTime" },
+        "deleted": false,
+        "bookingType": "membershipWithReservation",
+        "evaluationGrids": [],
+        "attendanceStatus": "noResponse"
+      },
+      {
+        "userId": "deadbeef000000000000001d",
+        "memberNumber": 1014,
+        "fullName": "User14 ANONYMIZED",
+        "attendeeResponse": { "response": "noResponse", "absenceReason": "" },
+        "coachResponse": { "response": "noResponse", "absenceReason": "", "isJustified": false, "status": "onTime" },
+        "deleted": false,
+        "bookingType": "membershipWithReservation",
+        "evaluationGrids": [],
+        "attendanceStatus": "noResponse"
+      },
+      {
+        "userId": "deadbeef000000000000001e",
+        "memberNumber": 1015,
+        "fullName": "User15 ANONYMIZED",
+        "attendeeResponse": { "response": "noResponse", "absenceReason": "" },
+        "coachResponse": { "response": "noResponse", "absenceReason": "", "isJustified": false, "status": "onTime" },
+        "deleted": false,
+        "bookingType": "membershipWithReservation",
+        "evaluationGrids": [],
+        "attendanceStatus": "noResponse"
+      },
+      {
+        "userId": "deadbeef000000000000001f",
+        "memberNumber": 1016,
+        "fullName": "User16 ANONYMIZED",
+        "attendeeResponse": { "response": "noResponse", "absenceReason": "" },
+        "coachResponse": { "response": "noResponse", "absenceReason": "", "isJustified": false, "status": "onTime" },
+        "deleted": false,
+        "bookingType": "membershipWithReservation",
+        "evaluationGrids": [],
+        "attendanceStatus": "noResponse"
+      },
+      {
+        "userId": "deadbeef0000000000000020",
+        "memberNumber": 1017,
+        "fullName": "User17 ANONYMIZED",
+        "attendeeResponse": { "response": "noResponse", "absenceReason": "" },
+        "coachResponse": { "response": "noResponse", "absenceReason": "", "isJustified": false, "status": "onTime" },
+        "deleted": false,
+        "bookingType": "membershipWithReservation",
+        "evaluationGrids": [],
+        "attendanceStatus": "noResponse"
+      },
+      {
+        "userId": "deadbeef0000000000000021",
+        "memberNumber": 1018,
+        "fullName": "User18 ANONYMIZED",
+        "attendeeResponse": { "response": "noResponse", "absenceReason": "" },
+        "coachResponse": { "response": "noResponse", "absenceReason": "", "isJustified": false, "status": "onTime" },
+        "deleted": false,
+        "bookingType": "membershipWithReservation",
+        "evaluationGrids": [],
+        "attendanceStatus": "noResponse"
+      },
+      {
+        "userId": "deadbeef0000000000000022",
+        "memberNumber": 1019,
+        "fullName": "User19 ANONYMIZED",
+        "attendeeResponse": { "response": "noResponse", "absenceReason": "" },
+        "coachResponse": { "response": "noResponse", "absenceReason": "", "isJustified": false, "status": "onTime" },
+        "deleted": false,
+        "bookingType": "membershipWithReservation",
+        "evaluationGrids": [],
+        "attendanceStatus": "noResponse"
+      },
+      {
+        "userId": "deadbeef0000000000000023",
+        "memberNumber": 1020,
+        "fullName": "User20 ANONYMIZED",
+        "attendeeResponse": { "response": "noResponse", "absenceReason": "" },
+        "coachResponse": { "response": "noResponse", "absenceReason": "", "isJustified": false, "status": "onTime" },
+        "deleted": false,
+        "bookingType": "membershipWithReservation",
+        "evaluationGrids": [],
+        "attendanceStatus": "noResponse"
+      },
+      {
+        "userId": "deadbeef0000000000000024",
+        "memberNumber": 1021,
+        "fullName": "User21 ANONYMIZED",
+        "attendeeResponse": { "response": "noResponse", "absenceReason": "" },
+        "coachResponse": { "response": "noResponse", "absenceReason": "", "isJustified": false, "status": "onTime" },
+        "deleted": false,
+        "bookingType": "membershipWithReservation",
+        "evaluationGrids": [],
+        "attendanceStatus": "noResponse"
+      },
+      {
+        "userId": "deadbeef0000000000000025",
+        "memberNumber": 1022,
+        "fullName": "User22 ANONYMIZED",
+        "attendeeResponse": { "response": "noResponse", "absenceReason": "" },
+        "coachResponse": { "response": "noResponse", "absenceReason": "", "isJustified": false, "status": "onTime" },
+        "deleted": false,
+        "bookingType": "membershipWithReservation",
+        "evaluationGrids": [],
+        "attendanceStatus": "noResponse"
+      },
+      {
+        "userId": "deadbeef0000000000000001",
+        "memberNumber": 1000,
+        "fullName": "User00 ANONYMIZED",
+        "attendeeResponse": { "response": "noResponse", "absenceReason": "" },
+        "coachResponse": { "response": "noResponse", "absenceReason": "", "isJustified": false, "status": "onTime" },
+        "deleted": false,
+        "bookingType": "membershipWithReservation",
+        "evaluationGrids": [],
+        "attendanceStatus": "noResponse"
+      },
+      {
+        "userId": "deadbeef0000000000000026",
+        "memberNumber": 1023,
+        "fullName": "User23 ANONYMIZED",
+        "attendeeResponse": { "response": "noResponse", "absenceReason": "" },
+        "coachResponse": { "response": "noResponse", "absenceReason": "", "isJustified": false, "status": "onTime" },
+        "deleted": false,
+        "bookingType": "membershipWithReservation",
+        "evaluationGrids": [],
+        "attendanceStatus": "noResponse"
+      }
+    ],
+    "__v": 0,
+    "createdAt": "2025-11-14T09:00:00.000Z",
+    "updatedAt": "2026-03-22T12:00:00.000Z",
+    "allParticipants": [
+      { "firstName": "User00", "lastName": "ANONYMIZED", "email": "user@example.com" },
+      { "firstName": "User01", "lastName": "ANONYMIZED", "email": "anon01@example.com" },
+      { "firstName": "User02", "lastName": "ANONYMIZED", "email": "anon02@example.com" },
+      { "firstName": "User03", "lastName": "ANONYMIZED", "email": "anon03@example.com" },
+      { "firstName": "User04", "lastName": "ANONYMIZED", "email": "anon04@example.com" },
+      { "firstName": "User05", "lastName": "ANONYMIZED", "email": "anon05@example.com" },
+      { "firstName": "User06", "lastName": "ANONYMIZED", "email": "anon06@example.com" },
+      { "firstName": "User07", "lastName": "ANONYMIZED", "email": "anon07@example.com" },
+      { "firstName": "User08", "lastName": "ANONYMIZED", "email": "anon08@example.com" },
+      { "firstName": "User09", "lastName": "ANONYMIZED", "email": "anon09@example.com" },
+      { "firstName": "User10", "lastName": "ANONYMIZED", "email": "anon10@example.com" },
+      { "firstName": "User11", "lastName": "ANONYMIZED", "email": "anon11@example.com" },
+      { "firstName": "User12", "lastName": "ANONYMIZED", "email": "anon12@example.com" },
+      { "firstName": "User13", "lastName": "ANONYMIZED", "email": "anon13@example.com" },
+      { "firstName": "User14", "lastName": "ANONYMIZED", "email": "anon14@example.com" },
+      { "firstName": "User15", "lastName": "ANONYMIZED", "email": "anon15@example.com" },
+      { "firstName": "User16", "lastName": "ANONYMIZED", "email": "anon16@example.com" },
+      { "firstName": "User17", "lastName": "ANONYMIZED", "email": "anon17@example.com" },
+      { "firstName": "User18", "lastName": "ANONYMIZED", "email": "anon18@example.com" },
+      { "firstName": "User19", "lastName": "ANONYMIZED", "email": "anon19@example.com" },
+      { "firstName": "User20", "lastName": "ANONYMIZED", "email": "anon20@example.com" },
+      { "firstName": "User21", "lastName": "ANONYMIZED", "email": "anon21@example.com" },
+      { "firstName": "User22", "lastName": "ANONYMIZED", "email": "anon22@example.com" },
+      { "firstName": "User23", "lastName": "ANONYMIZED", "email": "anon23@example.com" }
+    ],
+    "unsubscribedAttendees": [],
+    "effectiveAddress": "Site Example (Gymnase Example), 75000 Paris, 1 rue Example",
+    "callStatus": "todoCall",
+    "presentAttendees": 24,
+    "absentAttendees": 0,
+    "noResponseAttendees": 0
+  },
+  "accessToTrialSession": false
+}

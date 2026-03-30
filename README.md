@@ -95,7 +95,7 @@ cargo run --bin monclub-bot
 ```
 
 1. Authenticates against the API
-2. Prompts to **book** or **cancel**
+2. Prompts to **book** or **view / manage bookings**
 
 **Book**
 1. Fetches all upcoming club sessions
@@ -103,11 +103,12 @@ cargo run --bin monclub-bot
 3. Asks for confirmation
 4. Submits the booking, retrying on 409 until the slot opens or the deadline is reached
 
-**Cancel**
+**View / manage bookings**
 1. Fetches the user's upcoming bookings
 2. Presents a selection prompt
-3. Asks for confirmation
-4. Submits the cancellation
+3. Asks what to do with the selected booking:
+   - **View info** — fetches and displays full session detail (location, capacity, coaches, participants list, etc.)
+   - **Cancel reservation** — asks for confirmation, then submits the cancellation
 
 ### Discord bot
 
@@ -130,6 +131,7 @@ Slash commands are registered globally on first startup (may take up to an hour 
 |---------|-------------|
 | `/list [limit]` | List available sessions sorted by date, each with its ID. Optional `limit` restricts to the first N results. Long lists are split across multiple messages automatically. |
 | `/book <session>` | Book a session. The `session` argument has autocomplete — type to filter, or paste an ID from `/list`. If the slot returns 409 (not open yet), a background task retries and sends a follow-up message when confirmed or the deadline is hit. |
+| `/booking <booking>` | Show full detail for one of your bookings: session name, date/time, location, participant count, coaches, description, and numbered participants list. The `booking` argument has autocomplete. |
 | `/cancel <booking>` | Cancel an upcoming booking. The `booking` argument has autocomplete. |
 | `/bookings` | List your upcoming bookings. |
 
@@ -310,6 +312,58 @@ Returns the authenticated user's upcoming bookings.
     ]
   }
 ]
+```
+
+---
+
+### POST /sessions/withuser
+
+Fetches full detail for a single session, including the attendees list.
+
+**Request body**
+
+```json
+{
+  "sessionId": "<session_id>",
+  "userId":    "<user_id>"
+}
+```
+
+**Response** (relevant fields, wrapped in a `session` key)
+
+```json
+{
+  "session": {
+    "_id":               "<session_id>",
+    "sessionName":       "Session name",
+    "date":              "2026-04-04T15:00:00.000Z",
+    "time":              "17H00",
+    "endTime":           "19H00",
+    "place": {
+      "name":    "Venue name",
+      "address": "1 rue Example",
+      "zipCode": "75000",
+      "city":    "Paris"
+    },
+    "totalQuantityFree": 24,
+    "price":             5,
+    "level":             "allLevels",
+    "description":       "Jeu libre",
+    "info":              "Sur inscription préalable",
+    "coachs": [
+      { "fullName": "Coach Name" }
+    ],
+    "yesParticipants": ["<user_id>", "..."],
+    "attendees": [
+      {
+        "userId":     "<user_id>",
+        "fullName":   "User Name",
+        "memberNumber": 1001
+      }
+    ]
+  },
+  "accessToTrialSession": false
+}
 ```
 
 ---

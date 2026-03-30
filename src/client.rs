@@ -80,6 +80,134 @@ pub struct Booking {
     pub session: Vec<BookingSession>,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct SessionPlace {
+    pub name: Option<String>,
+    pub address: Option<String>,
+    #[serde(rename = "zipCode")]
+    pub zip_code: Option<String>,
+    pub city: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct SessionCoach {
+    #[serde(rename = "fullName")]
+    pub full_name: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct SessionDetail {
+    #[serde(rename = "_id")]
+    pub id: String,
+    #[serde(rename = "sessionName")]
+    pub name: Option<String>,
+    pub date: Option<String>,
+    pub time: Option<String>,
+    #[serde(rename = "endTime")]
+    pub end_time: Option<String>,
+    pub place: Option<SessionPlace>,
+    #[serde(rename = "totalQuantityFree")]
+    pub total_capacity: Option<u32>,
+    pub price: Option<f64>,
+    pub description: Option<String>,
+    pub info: Option<String>,
+    pub level: Option<String>,
+    pub coachs: Option<Vec<SessionCoach>>,
+    #[serde(rename = "yesParticipants", default)]
+    pub yes_participants: Vec<String>,
+    #[serde(default)]
+    pub attendees: Vec<SessionAttendee>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct SessionAttendee {
+    #[serde(rename = "fullName")]
+    pub full_name: Option<String>,
+}
+
+impl SessionDetail {
+    pub fn display_lines(&self) -> Vec<String> {
+        let mut lines = Vec::new();
+
+        lines.push(format!(
+            "Session: {}",
+            self.name.as_deref().unwrap_or(&self.id)
+        ));
+
+        let date = self
+            .date
+            .as_deref()
+            .and_then(|d| d.get(..10))
+            .unwrap_or("?");
+        let time = self.time.as_deref().unwrap_or("?");
+        let end_time = self.end_time.as_deref().unwrap_or("?");
+        lines.push(format!("Date: {date}  {time} - {end_time}"));
+
+        if let Some(place) = &self.place {
+            let name = place.name.as_deref().unwrap_or("");
+            let address = place.address.as_deref().unwrap_or("");
+            let zip = place.zip_code.as_deref().unwrap_or("");
+            let city = place.city.as_deref().unwrap_or("");
+            lines.push(format!("Location: {name}, {city} ({address}, {zip})"));
+        }
+
+        let current = self.yes_participants.len();
+        let capacity = self
+            .total_capacity
+            .map_or_else(|| "?".to_string(), |c| c.to_string());
+        lines.push(format!("Participants: {current}/{capacity}"));
+
+        if let Some(price) = self.price {
+            if price == 0.0 {
+                lines.push("Price: free".to_string());
+            } else {
+                lines.push(format!("Price: {price}€"));
+            }
+        }
+
+        if let Some(level) = &self.level
+            && !level.is_empty()
+            && level != "allLevels"
+        {
+            lines.push(format!("Level: {level}"));
+        }
+
+        if let Some(coachs) = &self.coachs {
+            let names: Vec<&str> = coachs
+                .iter()
+                .filter_map(|c| c.full_name.as_deref())
+                .collect();
+            if !names.is_empty() {
+                lines.push(format!("Coaches: {}", names.join(", ")));
+            }
+        }
+
+        if let Some(desc) = &self.description
+            && !desc.is_empty()
+        {
+            lines.push(format!("Description: {desc}"));
+        }
+
+        if let Some(info) = &self.info {
+            let trimmed = info.trim();
+            if !trimmed.is_empty() {
+                lines.push(format!("Info: {trimmed}"));
+            }
+        }
+
+        if !self.attendees.is_empty() {
+            lines.push(String::new());
+            lines.push("Participants:".to_string());
+            for (i, attendee) in self.attendees.iter().enumerate() {
+                let name = attendee.full_name.as_deref().unwrap_or("?");
+                lines.push(format!("  {}. {name}", i + 1));
+            }
+        }
+
+        lines
+    }
+}
+
 impl fmt::Display for Booking {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let s = self.session.first();
@@ -101,14 +229,29 @@ impl fmt::Display for Booking {
 #[derive(Debug)]
 enum Action {
     Book,
-    Cancel,
+    ManageBookings,
 }
 
 impl fmt::Display for Action {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Action::Book => write!(f, "Book a session"),
-            Action::Cancel => write!(f, "Cancel a reservation"),
+            Action::ManageBookings => write!(f, "View / manage bookings"),
+        }
+    }
+}
+
+#[derive(Debug)]
+enum BookingAction {
+    ViewInfo,
+    Cancel,
+}
+
+impl fmt::Display for BookingAction {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            BookingAction::ViewInfo => write!(f, "View info"),
+            BookingAction::Cancel => write!(f, "Cancel reservation"),
         }
     }
 }
@@ -315,6 +458,24 @@ impl MonClubClient {
         Ok(resp.error_for_status()?.json()?)
     }
 
+    pub fn get_session(&self, session_id: &str) -> Result<SessionDetail> {
+        let raw: Value = self
+            .http
+            .post(self.endpoint("/sessions/withuser"))
+            .header("authorization", self.token())
+            .json(&json!({
+                "sessionId": session_id,
+                "userId":    self.user_id,
+            }))
+            .send()?
+            .error_for_status()?
+            .json()?;
+
+        let session = raw.get("session").cloned().unwrap_or(raw);
+
+        Ok(serde_json::from_value(session)?)
+    }
+
     pub fn cancel_booking(&self, booking: &Booking) -> Result<Value> {
         info!("Cancelling '{}' (bookingId={})...", booking, booking.id);
 
@@ -392,7 +553,7 @@ impl MonClubClient {
         }
     }
 
-    fn run_cancel(&self) -> Result<()> {
+    fn run_manage_bookings(&self) -> Result<()> {
         let bookings = self.list_bookings()?;
 
         if bookings.is_empty() {
@@ -400,7 +561,7 @@ impl MonClubClient {
             return Ok(());
         }
 
-        let booking = Select::new("Select a reservation to cancel:", bookings)
+        let booking = Select::new("Select a booking:", bookings)
             .with_tabular_columns(vec![
                 ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left),
                 ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left),
@@ -408,17 +569,34 @@ impl MonClubClient {
             ])
             .prompt()?;
 
-        let confirmed = Confirm::new(&format!("Cancel '{booking}'?"))
-            .with_default(false)
-            .prompt()?;
+        let booking_action = Select::new(
+            &format!("What would you like to do with '{booking}'?"),
+            vec![BookingAction::ViewInfo, BookingAction::Cancel],
+        )
+        .prompt()?;
 
-        if !confirmed {
-            println!("Cancellation aborted.");
-            return Ok(());
+        match booking_action {
+            BookingAction::ViewInfo => {
+                let detail = self.get_session(&booking.session_id)?;
+                for line in detail.display_lines() {
+                    println!("{line}");
+                }
+            }
+            BookingAction::Cancel => {
+                let confirmed = Confirm::new(&format!("Cancel '{booking}'?"))
+                    .with_default(false)
+                    .prompt()?;
+
+                if !confirmed {
+                    println!("Cancellation aborted.");
+                    return Ok(());
+                }
+
+                self.cancel_booking(&booking)?;
+                println!("Cancellation confirmed!");
+            }
         }
 
-        self.cancel_booking(&booking)?;
-        println!("Cancellation confirmed!");
         Ok(())
     }
 
@@ -427,13 +605,13 @@ impl MonClubClient {
 
         let action = Select::new(
             "What would you like to do?",
-            vec![Action::Book, Action::Cancel],
+            vec![Action::Book, Action::ManageBookings],
         )
         .prompt()?;
 
         match action {
             Action::Book => self.run_book(),
-            Action::Cancel => self.run_cancel(),
+            Action::ManageBookings => self.run_manage_bookings(),
         }
     }
 }

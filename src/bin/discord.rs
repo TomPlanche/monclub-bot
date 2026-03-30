@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use monclub_bot::client::{BookError, Booking, MonClubClient, Session};
+use monclub_bot::client::{BookError, Booking, MonClubClient, Session, SessionDetail};
 use monclub_bot::config::Config;
 use monclub_bot::logging;
 use poise::serenity_prelude::{self as serenity, AutocompleteChoice};
@@ -53,7 +53,11 @@ async fn send_chunked(ctx: Context<'_>, lines: &[String]) -> Result<(), Error> {
 
     let mut chunk = String::new();
     for line in lines {
-        let needed = if chunk.is_empty() { line.len() } else { 1 + line.len() };
+        let needed = if chunk.is_empty() {
+            line.len()
+        } else {
+            1 + line.len()
+        };
         if !chunk.is_empty() && chunk.len() + needed > LIMIT {
             ctx.say(std::mem::take(&mut chunk)).await?;
         }
@@ -129,6 +133,53 @@ async fn autocomplete_booking(ctx: Context<'_>, partial: &str) -> Vec<Autocomple
         })
         .take(25)
         .collect()
+}
+
+fn format_session_detail(d: &SessionDetail) -> Vec<String> {
+    d.display_lines()
+        .into_iter()
+        .map(|line| {
+            let mut parts = line.splitn(2, ": ");
+            match (parts.next(), parts.next()) {
+                (Some(key), Some(val)) => format!("**{key}:** {val}"),
+                _ => line,
+            }
+        })
+        .collect()
+}
+
+/// Show detailed info about one of your bookings
+#[poise::command(slash_command)]
+async fn booking(
+    ctx: Context<'_>,
+    #[description = "Booking to inspect"]
+    #[autocomplete = "autocomplete_booking"]
+    booking: String,
+) -> Result<(), Error> {
+    if !is_owner(&ctx) {
+        ctx.say("Unauthorized.").await?;
+        return Ok(());
+    }
+
+    ctx.defer().await?;
+
+    // Value format: "booking_id:session_id"
+    let (_booking_id, session_id) = booking
+        .split_once(':')
+        .ok_or("Invalid booking value — use the autocomplete dropdown")?;
+
+    let sid = session_id.to_string();
+    let config = ctx.data().config.clone();
+
+    let detail = tokio::task::spawn_blocking(move || -> anyhow::Result<SessionDetail> {
+        let mut client = MonClubClient::new(config);
+        client.authenticate()?;
+        client.get_session(&sid)
+    })
+    .await??;
+
+    let lines = format_session_detail(&detail);
+    send_chunked(ctx, &lines).await
 }
 
 /// List your upcoming bookings
@@ -379,7 +430,7 @@ async fn main() {
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![bookings(), list(), book(), cancel()],
+            commands: vec![bookings(), list(), book(), cancel(), booking()],
             ..Default::default()
         })
         .setup(move |ctx, _ready, framework| {
