@@ -1,6 +1,7 @@
 use std::time::Duration;
 
-use monclub_bot::client::{BookError, Booking, MonClubClient, Session, SessionDetail};
+use chrono::Local;
+use monclub_bot::client::{BookError, Booking, MonClubClient, Session, SessionDetail, parse_when};
 use monclub_bot::config::Config;
 use monclub_bot::logging;
 use poise::serenity_prelude::{self as serenity, AutocompleteChoice};
@@ -364,6 +365,105 @@ async fn book(
     Ok(())
 }
 
+/// Book a session at a scheduled time
+#[poise::command(slash_command)]
+async fn prebook(
+    ctx: Context<'_>,
+    #[description = "Session to book"]
+    #[autocomplete = "autocomplete_session"]
+    session_id: String,
+    #[description = "When to book: HH:MM or YYYY-MM-DD HH:MM (local time)"]
+    when: String,
+) -> Result<(), Error> {
+    if !is_owner(&ctx) {
+        ctx.say("Unauthorized.").await?;
+        return Ok(());
+    }
+
+    let target = match parse_when(&when) {
+        Ok(t) => t,
+        Err(e) => {
+            ctx.say(format!("Invalid time: {e}")).await?;
+            return Ok(());
+        }
+    };
+
+    let now = Local::now();
+    if target <= now {
+        ctx.say("That time is already in the past.").await?;
+        return Ok(());
+    }
+
+    let wait = match (target - now).to_std() {
+        Ok(d) => d,
+        Err(e) => {
+            ctx.say(format!("Duration error: {e}")).await?;
+            return Ok(());
+        }
+    };
+
+    ctx.say(format!(
+        "Scheduled: will book `{session_id}` at `{}`. I'll post here when done.",
+        target.format("%Y-%m-%d %H:%M:%S")
+    ))
+    .await?;
+
+    let http = ctx.serenity_context().http.clone();
+    let channel_id = ctx.channel_id();
+    let config = ctx.data().config.clone();
+    let retry_duration = config.retry_duration;
+    let retry_interval = config.retry_interval;
+
+    tokio::spawn(async move {
+        tokio::time::sleep(wait).await;
+
+        let deadline = tokio::time::Instant::now() + Duration::from_secs(retry_duration);
+
+        loop {
+            let config_c = config.clone();
+            let sid = session_id.clone();
+
+            let result = tokio::task::spawn_blocking(
+                move || -> anyhow::Result<Result<serde_json::Value, BookError>> {
+                    let mut client = MonClubClient::new(config_c);
+                    client.authenticate()?;
+                    Ok(client.book_session(&Session {
+                        id: sid,
+                        name: None,
+                        date: None,
+                        time: None,
+                    }))
+                },
+            )
+            .await;
+
+            match result {
+                Ok(Ok(Ok(_))) => {
+                    let _ = channel_id
+                        .say(&http, format!("Booked: `{session_id}`"))
+                        .await;
+                    return;
+                }
+                Ok(Ok(Err(BookError::SlotNotOpen(_)))) => {
+                    if tokio::time::Instant::now() >= deadline {
+                        let _ = channel_id.say(&http, "Booking window expired.").await;
+                        return;
+                    }
+                    tokio::time::sleep(Duration::from_secs(retry_interval)).await;
+                }
+                _ => {
+                    let _ = channel_id
+                        .say(&http, "Booking failed with an unexpected error.")
+                        .await;
+                    return;
+                }
+            }
+        }
+    });
+
+    Ok(())
+}
+
 /// Cancel a booking
 #[poise::command(slash_command)]
 async fn cancel(
@@ -430,7 +530,7 @@ async fn main() {
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![bookings(), list(), book(), cancel(), booking()],
+            commands: vec![bookings(), list(), book(), prebook(), cancel(), booking()],
             ..Default::default()
         })
         .setup(move |ctx, _ready, framework| {
