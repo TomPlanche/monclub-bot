@@ -3,8 +3,9 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 use anyhow::{Result, anyhow};
+use chrono::{DateTime, Local, NaiveDateTime, NaiveTime};
 use inquire::tabular::{ColumnAlignment, ColumnConfig};
-use inquire::{Confirm, Select};
+use inquire::{Confirm, Select, Text};
 use reqwest::blocking::Client;
 use reqwest::header::{ACCEPT, ACCEPT_LANGUAGE, CONTENT_TYPE, HeaderMap, HeaderValue, USER_AGENT};
 use serde::Deserialize;
@@ -229,6 +230,7 @@ impl fmt::Display for Booking {
 #[derive(Debug)]
 enum Action {
     Book,
+    PreBook,
     ManageBookings,
 }
 
@@ -236,6 +238,7 @@ impl fmt::Display for Action {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Action::Book => write!(f, "Book a session"),
+            Action::PreBook => write!(f, "Schedule a booking for a specific time"),
             Action::ManageBookings => write!(f, "View / manage bookings"),
         }
     }
@@ -262,6 +265,50 @@ pub enum BookError {
     SlotNotOpen(String),
     #[error(transparent)]
     Request(#[from] reqwest::Error),
+}
+
+/// Parse a human-readable time string into a local `DateTime`.
+///
+/// Accepted formats:
+/// - `HH:MM`           - today at that time; tomorrow if the time has already passed today
+/// - `YYYY-MM-DD HH:MM` - an explicit date/time
+pub fn parse_when(s: &str) -> Result<DateTime<Local>> {
+    let s = s.trim();
+
+    if let Ok(dt) = NaiveDateTime::parse_from_str(s, "%Y-%m-%d %H:%M") {
+        return dt
+            .and_local_timezone(Local)
+            .single()
+            .ok_or_else(|| anyhow!("Ambiguous or invalid local time: {s}"));
+    }
+
+    if let Ok(t) = NaiveTime::parse_from_str(s, "%H:%M") {
+        let now = Local::now();
+        let today = now.date_naive().and_time(t);
+        let candidate = today
+            .and_local_timezone(Local)
+            .single()
+            .ok_or_else(|| anyhow!("Ambiguous or invalid local time: {s}"))?;
+
+        if candidate > now {
+            return Ok(candidate);
+        }
+
+        // Time already passed today — schedule for tomorrow
+        let tomorrow = now
+            .date_naive()
+            .succ_opt()
+            .ok_or_else(|| anyhow!("Date overflow"))?
+            .and_time(t);
+        return tomorrow
+            .and_local_timezone(Local)
+            .single()
+            .ok_or_else(|| anyhow!("Ambiguous or invalid local time: {s}"));
+    }
+
+    Err(anyhow!(
+        "Unrecognised time format '{s}'. Use HH:MM or YYYY-MM-DD HH:MM"
+    ))
 }
 
 fn deserialize_array<T: serde::de::DeserializeOwned>(raw: Value) -> Result<Vec<T>> {
@@ -498,9 +545,46 @@ impl MonClubClient {
             .json()?)
     }
 
-    fn run_book(&self) -> Result<()> {
+    pub fn run_book(&self, session_id: Option<String>) -> Result<()> {
         let deadline = Instant::now() + Duration::from_secs(self.config.retry_duration);
         let mut attempt = 0u32;
+
+        // When an ID is provided directly, skip the interactive picker entirely.
+        if let Some(id) = session_id {
+            let session = Session {
+                id,
+                name: None,
+                date: None,
+                time: None,
+            };
+            loop {
+                attempt += 1;
+                info!("Attempt {attempt} - booking session '{}'...", session.id);
+
+                match self.book_session(&session) {
+                    Ok(_) => {
+                        println!("Booking confirmed!");
+                        return Ok(());
+                    }
+                    Err(BookError::SlotNotOpen(body)) => {
+                        warn!("409 slot not open yet: {body}");
+                        if Instant::now() >= deadline {
+                            eprintln!("Booking window expired.");
+                            std::process::exit(1);
+                        }
+                        println!(
+                            "Slot not open yet. Retrying in {}s...",
+                            self.config.retry_interval
+                        );
+                        thread::sleep(Duration::from_secs(self.config.retry_interval));
+                    }
+                    Err(e) => {
+                        eprintln!("Booking failed: {e}");
+                        std::process::exit(1);
+                    }
+                }
+            }
+        }
 
         loop {
             attempt += 1;
@@ -553,7 +637,85 @@ impl MonClubClient {
         }
     }
 
-    fn run_manage_bookings(&self) -> Result<()> {
+    pub fn run_prebook(&self, session_id: Option<String>, when: Option<String>) -> Result<()> {
+        // Step 1: pick a session (or use the provided ID directly)
+        let session = match session_id {
+            Some(id) => Session {
+                id,
+                name: None,
+                date: None,
+                time: None,
+            },
+            None => if let Some(s) = self.find_target_session()? { s } else {
+                let id = Text::new("No sessions found. Enter session ID manually:").prompt()?;
+                Session {
+                    id,
+                    name: None,
+                    date: None,
+                    time: None,
+                }
+            },
+        };
+
+        // Step 2: resolve target time
+        let when_str = match when {
+            Some(w) => w,
+            None => Text::new("When to book? (HH:MM or YYYY-MM-DD HH:MM, local time):")
+                .prompt()?,
+        };
+        let target = parse_when(&when_str)?;
+        let now = Local::now();
+
+        if target <= now {
+            return Err(anyhow!("Target time is already in the past"));
+        }
+
+        let wait = (target - now)
+            .to_std()
+            .map_err(|e| anyhow!("Duration error: {e}"))?;
+
+        println!(
+            "Will book '{}' at {}. Waiting...",
+            session,
+            target.format("%Y-%m-%d %H:%M:%S")
+        );
+        thread::sleep(wait);
+        println!("Target time reached. Booking now...");
+
+        // Step 3: booking retry loop
+        let deadline = Instant::now() + Duration::from_secs(self.config.retry_duration);
+        let mut attempt = 0u32;
+
+        loop {
+            attempt += 1;
+            info!("Pre-book attempt {attempt}...");
+
+            match self.book_session(&session) {
+                Ok(_) => {
+                    println!("Booking confirmed!");
+                    return Ok(());
+                }
+                Err(BookError::SlotNotOpen(body)) => {
+                    warn!("409 slot not open yet: {body}");
+                    if Instant::now() >= deadline {
+                        eprintln!("Booking window expired.");
+                        std::process::exit(1);
+                    }
+                    println!(
+                        "Slot not open yet. Retrying in {}s...",
+                        self.config.retry_interval
+                    );
+                    thread::sleep(Duration::from_secs(self.config.retry_interval));
+                }
+                Err(e) => {
+                    eprintln!("Booking failed: {e}");
+                    std::process::exit(1);
+                }
+            }
+        }
+    }
+
+    pub fn run_manage_bookings(&self) -> Result<()> {
         let bookings = self.list_bookings()?;
 
         if bookings.is_empty() {
@@ -605,12 +767,13 @@ impl MonClubClient {
 
         let action = Select::new(
             "What would you like to do?",
-            vec![Action::Book, Action::ManageBookings],
+            vec![Action::Book, Action::PreBook, Action::ManageBookings],
         )
         .prompt()?;
 
         match action {
-            Action::Book => self.run_book(),
+            Action::Book => self.run_book(None),
+            Action::PreBook => self.run_prebook(None, None),
             Action::ManageBookings => self.run_manage_bookings(),
         }
     }
