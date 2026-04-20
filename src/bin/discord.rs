@@ -1,7 +1,9 @@
 use std::time::Duration;
 
 use chrono::Local;
-use monclub_bot::client::{BookError, Booking, MonClubClient, Session, SessionDetail, parse_when};
+use monclub_bot::client::{
+    BookError, Booking, MonClubClient, Session, SessionComparison, SessionDetail, parse_when,
+};
 use monclub_bot::config::Config;
 use monclub_bot::logging;
 use poise::serenity_prelude::{self as serenity, AutocompleteChoice};
@@ -505,6 +507,52 @@ async fn cancel(
     Ok(())
 }
 
+fn format_comparison(c: &SessionComparison) -> Vec<String> {
+    c.display_lines()
+        .into_iter()
+        .map(|line| {
+            // Bold "Session A:", "Session B:", "In both (...):", etc.
+            let mut parts = line.splitn(2, ": ");
+            match (parts.next(), parts.next()) {
+                (Some(key), Some(val)) if !val.is_empty() => format!("**{key}:** {val}"),
+                _ => line,
+            }
+        })
+        .collect()
+}
+
+/// Compare participants between two sessions
+#[poise::command(slash_command)]
+async fn compare(
+    ctx: Context<'_>,
+    #[description = "First session"]
+    #[autocomplete = "autocomplete_session"]
+    session_a: String,
+    #[description = "Second session"]
+    #[autocomplete = "autocomplete_session"]
+    session_b: String,
+) -> Result<(), Error> {
+    if !is_owner(&ctx) {
+        ctx.say("Unauthorized.").await?;
+        return Ok(());
+    }
+
+    ctx.defer().await?;
+
+    let config = ctx.data().config.clone();
+
+    let comparison =
+        tokio::task::spawn_blocking(move || -> anyhow::Result<SessionComparison> {
+            let mut client = MonClubClient::new(config);
+            client.authenticate()?;
+            client.compare_sessions(&session_a, &session_b)
+        })
+        .await??;
+
+    let lines = format_comparison(&comparison);
+    send_chunked(ctx, &lines).await
+}
+
 // ---------------------------------------------------------------------------
 // Entry point
 // ---------------------------------------------------------------------------
@@ -530,7 +578,7 @@ async fn main() {
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![bookings(), list(), book(), prebook(), cancel(), booking()],
+            commands: vec![bookings(), list(), book(), prebook(), cancel(), booking(), compare()],
             ..Default::default()
         })
         .setup(move |ctx, _ready, framework| {

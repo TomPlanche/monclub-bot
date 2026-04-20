@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::fmt;
 use std::thread;
 use std::time::{Duration, Instant};
@@ -232,6 +233,7 @@ enum Action {
     Book,
     PreBook,
     ManageBookings,
+    Compare,
 }
 
 impl fmt::Display for Action {
@@ -240,7 +242,63 @@ impl fmt::Display for Action {
             Action::Book => write!(f, "Book a session"),
             Action::PreBook => write!(f, "Schedule a booking for a specific time"),
             Action::ManageBookings => write!(f, "View / manage bookings"),
+            Action::Compare => write!(f, "Compare participants between two sessions"),
         }
+    }
+}
+
+#[derive(Debug)]
+pub struct SessionComparison {
+    pub session_a: SessionDetail,
+    pub session_b: SessionDetail,
+    pub in_both: Vec<String>,
+    pub only_in_a: Vec<String>,
+    pub only_in_b: Vec<String>,
+}
+
+impl SessionComparison {
+    pub fn display_lines(&self) -> Vec<String> {
+        let label = |d: &SessionDetail| -> String {
+            let date = d.date.as_deref().and_then(|s| s.get(..10)).unwrap_or("?");
+            let time = d.time.as_deref().unwrap_or("?");
+            format!("{} ({date} {time})", d.name.as_deref().unwrap_or(&d.id))
+        };
+
+        let mut lines = Vec::new();
+        lines.push(format!("Session A: {}", label(&self.session_a)));
+        lines.push(format!("Session B: {}", label(&self.session_b)));
+        lines.push(String::new());
+
+        lines.push(format!("In both ({}):", self.in_both.len()));
+        if self.in_both.is_empty() {
+            lines.push("  (none)".to_string());
+        } else {
+            for name in &self.in_both {
+                lines.push(format!("  - {name}"));
+            }
+        }
+
+        lines.push(String::new());
+        lines.push(format!("Only in A ({}):", self.only_in_a.len()));
+        if self.only_in_a.is_empty() {
+            lines.push("  (none)".to_string());
+        } else {
+            for name in &self.only_in_a {
+                lines.push(format!("  - {name}"));
+            }
+        }
+
+        lines.push(String::new());
+        lines.push(format!("Only in B ({}):", self.only_in_b.len()));
+        if self.only_in_b.is_empty() {
+            lines.push("  (none)".to_string());
+        } else {
+            for name in &self.only_in_b {
+                lines.push(format!("  - {name}"));
+            }
+        }
+
+        lines
     }
 }
 
@@ -762,12 +820,118 @@ impl MonClubClient {
         Ok(())
     }
 
+    pub fn compare_sessions(
+        &self,
+        session_id_a: &str,
+        session_id_b: &str,
+    ) -> Result<SessionComparison> {
+        let a = self.get_session(session_id_a)?;
+        let b = self.get_session(session_id_b)?;
+
+        let names_a: HashSet<String> = a
+            .attendees
+            .iter()
+            .filter_map(|att| att.full_name.clone())
+            .collect();
+        let names_b: HashSet<String> = b
+            .attendees
+            .iter()
+            .filter_map(|att| att.full_name.clone())
+            .collect();
+
+        let mut in_both: Vec<String> = names_a.intersection(&names_b).cloned().collect();
+        let mut only_in_a: Vec<String> = names_a.difference(&names_b).cloned().collect();
+        let mut only_in_b: Vec<String> = names_b.difference(&names_a).cloned().collect();
+
+        in_both.sort();
+        only_in_a.sort();
+        only_in_b.sort();
+
+        Ok(SessionComparison {
+            session_a: a,
+            session_b: b,
+            in_both,
+            only_in_a,
+            only_in_b,
+        })
+    }
+
+    /// Build a session list with booked sessions sorted first.
+    fn sessions_booked_first(&self) -> Result<Vec<Session>> {
+        let mut sessions = self.list_sessions()?;
+        let booked_ids: HashSet<String> = self
+            .list_bookings()?
+            .into_iter()
+            .map(|b| b.session_id)
+            .collect();
+        sessions.sort_by_key(|s| !booked_ids.contains(&s.id));
+        Ok(sessions)
+    }
+
+    pub fn run_compare(
+        &self,
+        session_id_a: Option<String>,
+        session_id_b: Option<String>,
+    ) -> Result<()> {
+        let id_a = match session_id_a {
+            Some(id) => id,
+            None => {
+                let sessions = self.sessions_booked_first()?;
+                if sessions.is_empty() {
+                    return Err(anyhow!("No sessions available"));
+                }
+                let s = Select::new("Select session A:", sessions)
+                    .with_tabular_columns(vec![
+                        ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left),
+                        ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left),
+                        ColumnConfig::new(ColumnAlignment::Left),
+                    ])
+                    .prompt()?;
+                s.id
+            }
+        };
+
+        let id_b = match session_id_b {
+            Some(id) => id,
+            None => {
+                let sessions = self
+                    .sessions_booked_first()?
+                    .into_iter()
+                    .filter(|s| s.id != id_a)
+                    .collect::<Vec<_>>();
+                if sessions.is_empty() {
+                    return Err(anyhow!("No other sessions available"));
+                }
+                let s = Select::new("Select session B:", sessions)
+                    .with_tabular_columns(vec![
+                        ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left),
+                        ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left),
+                        ColumnConfig::new(ColumnAlignment::Left),
+                    ])
+                    .prompt()?;
+                s.id
+            }
+        };
+
+        let comparison = self.compare_sessions(&id_a, &id_b)?;
+        for line in comparison.display_lines() {
+            println!("{line}");
+        }
+
+        Ok(())
+    }
+
     pub fn run(&mut self) -> Result<()> {
         self.authenticate()?;
 
         let action = Select::new(
             "What would you like to do?",
-            vec![Action::Book, Action::PreBook, Action::ManageBookings],
+            vec![
+                Action::Book,
+                Action::PreBook,
+                Action::ManageBookings,
+                Action::Compare,
+            ],
         )
         .prompt()?;
 
@@ -775,6 +939,7 @@ impl MonClubClient {
             Action::Book => self.run_book(None),
             Action::PreBook => self.run_prebook(None, None),
             Action::ManageBookings => self.run_manage_bookings(),
+            Action::Compare => self.run_compare(None, None),
         }
     }
 }

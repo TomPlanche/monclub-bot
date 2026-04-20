@@ -33,6 +33,13 @@ enum Command {
     },
     /// View and manage your upcoming bookings
     Manage,
+    /// Compare participants between two sessions
+    Compare {
+        /// First session ID
+        session_id_a: Option<String>,
+        /// Second session ID
+        session_id_b: Option<String>,
+    },
 }
 
 fn main() {
@@ -51,6 +58,10 @@ fn main() {
             Command::Book { session_id } => client.run_book(session_id),
             Command::Prebook { session_id, when } => client.run_prebook(session_id, when),
             Command::Manage => client.run_manage_bookings(),
+            Command::Compare {
+                session_id_a,
+                session_id_b,
+            } => client.run_compare(session_id_a, session_id_b),
         })
     } else {
         client.run()
