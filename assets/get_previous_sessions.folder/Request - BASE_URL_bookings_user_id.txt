@@ -1,0 +1,11 @@
+GET /bookings/user/deadbeef0000000000000001?category=ondemand&temporality=beforeToday HTTP/1.1
+Host: {{BASE_URL}}
+User-Agent: MonClubFakeAgent/311 CFNetwork/3860.600.12 Darwin/25.5.0
+Connection: keep-alive
+baggage: sentry-environment=production,sentry-public_key=00000000000000000000000000000002,sentry-release=teamr.custom%403.11.4,sentry-trace_id=00000000000000000000000000000001
+If-None-Match: W/"00000-FAKEETAG0000000000000"
+Accept: application/json
+Accept-Language: fr
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJ1c2VyVHlwZSI6ImFwcCIsInVzZXJJZCI6ImRlYWRiZWVmMDAwMDAwMDAwMDAwMDAwMSIsImNvYWNoIjpmYWxzZSwiY3VzdG9tSWQiOiJkZWFkYmVlZjAwMDAwMDAwMDAwMDAwMDIiLCJpYXQiOjE3Njg0MDY5MzMsImV4cCI6MTc5OTk0MjkzM30.FAKESIGNATUREXXXXXXXXXXXXXXXXXXXX
+Accept-Encoding: gzip, deflate, br
+sentry-trace: 00000000000000000000000000000001-0000000000000001-0

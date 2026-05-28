@@ -33,6 +33,8 @@ enum Command {
     },
     /// View and manage your upcoming bookings
     Manage,
+    /// List previous sessions and view their details
+    Previous,
     /// Compare participants between two sessions
     Compare {
         /// First session ID
@@ -58,6 +60,7 @@ fn main() {
             Command::Book { session_id } => client.run_book(session_id),
             Command::Prebook { session_id, when } => client.run_prebook(session_id, when),
             Command::Manage => client.run_manage_bookings(),
+            Command::Previous => client.run_previous_sessions(),
             Command::Compare {
                 session_id_a,
                 session_id_b,

@@ -95,7 +95,9 @@ cargo run --bin monclub-bot
 ```
 
 1. Authenticates against the API
-2. Prompts to **book** or **view / manage bookings**
+2. Prompts to choose an action from the interactive menu
+
+All session and booking pickers display four columns: name, date, time, and current/total participants.
 
 **Book**
 1. Fetches all upcoming club sessions
@@ -103,12 +105,26 @@ cargo run --bin monclub-bot
 3. Asks for confirmation
 4. Submits the booking, retrying on 409 until the slot opens or the deadline is reached
 
+**Schedule a booking (`prebook`)**
+1. Picks a session (interactive or by ID)
+2. Asks for a target time (`HH:MM` or `YYYY-MM-DD HH:MM`)
+3. Sleeps until that time, then runs the same retry loop as Book
+
 **View / manage bookings**
 1. Fetches the user's upcoming bookings
 2. Presents a selection prompt
 3. Asks what to do with the selected booking:
    - **View info** — fetches and displays full session detail (location, capacity, coaches, participants list, etc.)
    - **Cancel reservation** — asks for confirmation, then submits the cancellation
+
+**See previous sessions**
+1. Fetches the user's past bookings, sorted most recent first
+2. Presents a selection prompt
+3. Fetches and displays full session detail for the selected entry
+
+**Compare participants**
+1. Prompts for two sessions (interactive or by ID; booked sessions are sorted first)
+2. Displays three sets: participants in both, only in the first, only in the second
 
 ### Discord bot
 
@@ -286,14 +302,14 @@ Lists all upcoming sessions for the user's clubs.
 
 ### GET /bookings/user/:userId
 
-Returns the authenticated user's upcoming bookings.
+Returns the authenticated user's bookings.
 
 **Query params**
 
 | Param | Value |
 |-------|-------|
 | `category` | `ondemand` |
-| `temporality` | `fromToday` |
+| `temporality` | `fromToday` for upcoming bookings, `beforeToday` for past bookings |
 
 **Response**: a JSON array of booking objects. Session details are nested inside the `session` array.
 
@@ -304,10 +320,12 @@ Returns the authenticated user's upcoming bookings.
     "sessionId": "<session_id>",
     "session": [
       {
-        "_id":         "<session_id>",
-        "sessionName": "Jeu Libre",
-        "date":        "2026-03-28T16:00:00.000Z",
-        "time":        "17H00"
+        "_id":               "<session_id>",
+        "sessionName":       "Jeu Libre",
+        "date":              "2026-03-28T16:00:00.000Z",
+        "time":              "17H00",
+        "yesParticipants":   ["<user_id>", "..."],
+        "totalQuantityFree": 24
       }
     ]
   }

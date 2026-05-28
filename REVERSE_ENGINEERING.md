@@ -53,6 +53,8 @@ The device metadata in the request body is hardcoded — the server accepts arbi
 
 `GET /bookings/user/:userId?category=ondemand&temporality=fromToday` returns the user's upcoming bookings. Each entry contains a nested `session` array with the session details and a top-level `_id` — that `_id` is the `bookingId` required for cancellation. Found by capturing traffic while opening the "My Bookings" tab.
 
+The same endpoint with `temporality=beforeToday` returns past bookings. The `session` object in each entry includes `yesParticipants` (array of user ID strings) and `totalQuantityFree` (capacity integer), used to display the participant count in the picker.
+
 ### Booking and cancellation — [`assets/book_session.folder/`](./assets/book_session.folder/) · [`assets/cancel_session.folder/`](./assets/cancel_session.folder/)
 
 `POST /sessions/book/licenseeFromClub` handles both operations. The `isPresent` field in the participant object controls which:

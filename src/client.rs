@@ -46,6 +46,10 @@ pub struct Session {
     pub name: Option<String>,
     pub date: Option<String>,
     pub time: Option<String>,
+    #[serde(rename = "yesParticipants", default)]
+    pub yes_participants: Vec<String>,
+    #[serde(rename = "totalQuantityFree")]
+    pub total_capacity: Option<u32>,
 }
 
 impl fmt::Display for Session {
@@ -55,12 +59,18 @@ impl fmt::Display for Session {
             .as_deref()
             .and_then(|d| d.get(..10))
             .unwrap_or("?");
+        let participants = match self.total_capacity {
+            Some(cap) => format!("{}/{cap}", self.yes_participants.len()),
+            None if !self.yes_participants.is_empty() => self.yes_participants.len().to_string(),
+            None => "?".to_string(),
+        };
         write!(
             f,
-            "{} | {} | {}",
+            "{} | {} | {} | {}",
             self.name.as_deref().unwrap_or(&self.id),
             date,
             self.time.as_deref().unwrap_or("?"),
+            participants,
         )
     }
 }
@@ -71,6 +81,10 @@ pub struct BookingSession {
     pub name: Option<String>,
     pub date: Option<String>,
     pub time: Option<String>,
+    #[serde(rename = "yesParticipants", default)]
+    pub yes_participants: Vec<String>,
+    #[serde(rename = "totalQuantityFree")]
+    pub total_capacity: Option<u32>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -217,13 +231,21 @@ impl fmt::Display for Booking {
             .and_then(|s| s.date.as_deref())
             .and_then(|d| d.get(..10))
             .unwrap_or("?");
+        let participants = s.map_or_else(
+            || "?".to_string(),
+            |s| match s.total_capacity {
+                Some(cap) => format!("{}/{cap}", s.yes_participants.len()),
+                None => s.yes_participants.len().to_string(),
+            },
+        );
         write!(
             f,
-            "{} | {} | {}",
+            "{} | {} | {} | {}",
             s.and_then(|s| s.name.as_deref())
                 .unwrap_or(&self.session_id),
             date,
             s.and_then(|s| s.time.as_deref()).unwrap_or("?"),
+            participants,
         )
     }
 }
@@ -233,6 +255,7 @@ enum Action {
     Book,
     PreBook,
     ManageBookings,
+    PreviousSessions,
     Compare,
 }
 
@@ -242,6 +265,7 @@ impl fmt::Display for Action {
             Action::Book => write!(f, "Book a session"),
             Action::PreBook => write!(f, "Schedule a booking for a specific time"),
             Action::ManageBookings => write!(f, "View / manage bookings"),
+            Action::PreviousSessions => write!(f, "See previous sessions"),
             Action::Compare => write!(f, "Compare participants between two sessions"),
         }
     }
@@ -519,6 +543,19 @@ impl MonClubClient {
         deserialize_array(raw)
     }
 
+    pub fn list_previous_bookings(&self) -> Result<Vec<Booking>> {
+        let raw: Value = self
+            .http
+            .get(self.endpoint(&format!("/bookings/user/{}", self.user_id())))
+            .header("authorization", self.token())
+            .query(&[("category", "ondemand"), ("temporality", "beforeToday")])
+            .send()?
+            .error_for_status()?
+            .json()?;
+
+        deserialize_array(raw)
+    }
+
     fn find_target_session(&self) -> Result<Option<Session>> {
         let sessions = self.list_sessions()?;
         info!("{} sessions available", sessions.len());
@@ -529,6 +566,7 @@ impl MonClubClient {
 
         let session = Select::new("Select a session to book:", sessions)
             .with_tabular_columns(vec![
+                ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left),
                 ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left),
                 ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left),
                 ColumnConfig::new(ColumnAlignment::Left),
@@ -614,6 +652,8 @@ impl MonClubClient {
                 name: None,
                 date: None,
                 time: None,
+                yes_participants: vec![],
+                total_capacity: None,
             };
             loop {
                 attempt += 1;
@@ -703,23 +743,30 @@ impl MonClubClient {
                 name: None,
                 date: None,
                 time: None,
+                yes_participants: vec![],
+                total_capacity: None,
             },
-            None => if let Some(s) = self.find_target_session()? { s } else {
-                let id = Text::new("No sessions found. Enter session ID manually:").prompt()?;
-                Session {
-                    id,
-                    name: None,
-                    date: None,
-                    time: None,
+            None => {
+                if let Some(s) = self.find_target_session()? {
+                    s
+                } else {
+                    let id = Text::new("No sessions found. Enter session ID manually:").prompt()?;
+                    Session {
+                        id,
+                        name: None,
+                        date: None,
+                        time: None,
+                        yes_participants: vec![],
+                        total_capacity: None,
+                    }
                 }
-            },
+            }
         };
 
         // Step 2: resolve target time
         let when_str = match when {
             Some(w) => w,
-            None => Text::new("When to book? (HH:MM or YYYY-MM-DD HH:MM, local time):")
-                .prompt()?,
+            None => Text::new("When to book? (HH:MM or YYYY-MM-DD HH:MM, local time):").prompt()?,
         };
         let target = parse_when(&when_str)?;
         let now = Local::now();
@@ -785,6 +832,7 @@ impl MonClubClient {
             .with_tabular_columns(vec![
                 ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left),
                 ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left),
+                ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left),
                 ColumnConfig::new(ColumnAlignment::Left),
             ])
             .prompt()?;
@@ -815,6 +863,44 @@ impl MonClubClient {
                 self.cancel_booking(&booking)?;
                 println!("Cancellation confirmed!");
             }
+        }
+
+        Ok(())
+    }
+
+    pub fn run_previous_sessions(&self) -> Result<()> {
+        let mut bookings = self.list_previous_bookings()?;
+        bookings.sort_by(|a, b| {
+            let date_a = a
+                .session
+                .first()
+                .and_then(|s| s.date.as_deref())
+                .unwrap_or("");
+            let date_b = b
+                .session
+                .first()
+                .and_then(|s| s.date.as_deref())
+                .unwrap_or("");
+            date_b.cmp(date_a)
+        });
+
+        if bookings.is_empty() {
+            println!("No previous sessions found.");
+            return Ok(());
+        }
+
+        let booking = Select::new("Select a previous session:", bookings)
+            .with_tabular_columns(vec![
+                ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left),
+                ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left),
+                ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left),
+                ColumnConfig::new(ColumnAlignment::Left),
+            ])
+            .prompt()?;
+
+        let detail = self.get_session(&booking.session_id)?;
+        for line in detail.display_lines() {
+            println!("{line}");
         }
 
         Ok(())
@@ -873,44 +959,42 @@ impl MonClubClient {
         session_id_a: Option<String>,
         session_id_b: Option<String>,
     ) -> Result<()> {
-        let id_a = match session_id_a {
-            Some(id) => id,
-            None => {
-                let sessions = self.sessions_booked_first()?;
-                if sessions.is_empty() {
-                    return Err(anyhow!("No sessions available"));
-                }
-                let s = Select::new("Select session A:", sessions)
-                    .with_tabular_columns(vec![
-                        ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left),
-                        ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left),
-                        ColumnConfig::new(ColumnAlignment::Left),
-                    ])
-                    .prompt()?;
-                s.id
+        let id_a = if let Some(id) = session_id_a {
+            id
+        } else {
+            let sessions = self.sessions_booked_first()?;
+            if sessions.is_empty() {
+                return Err(anyhow!("No sessions available"));
             }
+            let s = Select::new("Select session A:", sessions)
+                .with_tabular_columns(vec![
+                    ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left),
+                    ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left),
+                    ColumnConfig::new(ColumnAlignment::Left),
+                ])
+                .prompt()?;
+            s.id
         };
 
-        let id_b = match session_id_b {
-            Some(id) => id,
-            None => {
-                let sessions = self
-                    .sessions_booked_first()?
-                    .into_iter()
-                    .filter(|s| s.id != id_a)
-                    .collect::<Vec<_>>();
-                if sessions.is_empty() {
-                    return Err(anyhow!("No other sessions available"));
-                }
-                let s = Select::new("Select session B:", sessions)
-                    .with_tabular_columns(vec![
-                        ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left),
-                        ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left),
-                        ColumnConfig::new(ColumnAlignment::Left),
-                    ])
-                    .prompt()?;
-                s.id
+        let id_b = if let Some(id) = session_id_b {
+            id
+        } else {
+            let sessions = self
+                .sessions_booked_first()?
+                .into_iter()
+                .filter(|s| s.id != id_a)
+                .collect::<Vec<_>>();
+            if sessions.is_empty() {
+                return Err(anyhow!("No other sessions available"));
             }
+            let s = Select::new("Select session B:", sessions)
+                .with_tabular_columns(vec![
+                    ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left),
+                    ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left),
+                    ColumnConfig::new(ColumnAlignment::Left),
+                ])
+                .prompt()?;
+            s.id
         };
 
         let comparison = self.compare_sessions(&id_a, &id_b)?;
@@ -930,6 +1014,7 @@ impl MonClubClient {
                 Action::Book,
                 Action::PreBook,
                 Action::ManageBookings,
+                Action::PreviousSessions,
                 Action::Compare,
             ],
         )
@@ -939,6 +1024,7 @@ impl MonClubClient {
             Action::Book => self.run_book(None),
             Action::PreBook => self.run_prebook(None, None),
             Action::ManageBookings => self.run_manage_bookings(),
+            Action::PreviousSessions => self.run_previous_sessions(),
             Action::Compare => self.run_compare(None, None),
         }
     }

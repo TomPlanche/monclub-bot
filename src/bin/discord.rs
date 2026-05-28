@@ -289,6 +289,8 @@ async fn book(
                 name: None,
                 date: None,
                 time: None,
+                yes_participants: vec![],
+                total_capacity: None,
             }))
         },
     )
@@ -334,6 +336,8 @@ async fn book(
                                 name: None,
                                 date: None,
                                 time: None,
+                                yes_participants: vec![],
+                                total_capacity: None,
                             }))
                         },
                     )
@@ -374,8 +378,7 @@ async fn prebook(
     #[description = "Session to book"]
     #[autocomplete = "autocomplete_session"]
     session_id: String,
-    #[description = "When to book: HH:MM or YYYY-MM-DD HH:MM (local time)"]
-    when: String,
+    #[description = "When to book: HH:MM or YYYY-MM-DD HH:MM (local time)"] when: String,
 ) -> Result<(), Error> {
     if !is_owner(&ctx) {
         ctx.say("Unauthorized.").await?;
@@ -434,6 +437,8 @@ async fn prebook(
                         name: None,
                         date: None,
                         time: None,
+                        yes_participants: vec![],
+                        total_capacity: None,
                     }))
                 },
             )
@@ -541,13 +546,12 @@ async fn compare(
 
     let config = ctx.data().config.clone();
 
-    let comparison =
-        tokio::task::spawn_blocking(move || -> anyhow::Result<SessionComparison> {
-            let mut client = MonClubClient::new(config);
-            client.authenticate()?;
-            client.compare_sessions(&session_a, &session_b)
-        })
-        .await??;
+    let comparison = tokio::task::spawn_blocking(move || -> anyhow::Result<SessionComparison> {
+        let mut client = MonClubClient::new(config);
+        client.authenticate()?;
+        client.compare_sessions(&session_a, &session_b)
+    })
+    .await??;
 
     let lines = format_comparison(&comparison);
     send_chunked(ctx, &lines).await
@@ -578,7 +582,15 @@ async fn main() {
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![bookings(), list(), book(), prebook(), cancel(), booking(), compare()],
+            commands: vec![
+                bookings(),
+                list(),
+                book(),
+                prebook(),
+                cancel(),
+                booking(),
+                compare(),
+            ],
             ..Default::default()
         })
         .setup(move |ctx, _ready, framework| {
