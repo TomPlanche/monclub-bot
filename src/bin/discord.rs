@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use std::time::Duration;
 
 use chrono::Local;
@@ -21,6 +22,76 @@ fn is_owner(ctx: &Context<'_>) -> bool {
     match ctx.data().owner_id {
         None => true,
         Some(owner_id) => ctx.author().id == owner_id,
+    }
+}
+
+/// Reject a command with an "Unauthorized." reply unless the caller is the owner.
+macro_rules! ensure_owner {
+    ($ctx:expr) => {
+        if !is_owner(&$ctx) {
+            $ctx.say("Unauthorized.").await?;
+            return Ok(());
+        }
+    };
+}
+
+/// Build an authenticated client on the blocking pool and run `f` against it.
+///
+/// Every command repeats the same three steps (new client, authenticate,
+/// call); this centralises them and folds the join error into the result.
+async fn with_client<T, F>(config: Config, f: F) -> anyhow::Result<T>
+where
+    T: Send + 'static,
+    F: FnOnce(&MonClubClient) -> anyhow::Result<T> + Send + 'static,
+{
+    tokio::task::spawn_blocking(move || {
+        let mut client = MonClubClient::new(config);
+        client.authenticate()?;
+        f(&client)
+    })
+    .await?
+}
+
+/// Retry booking `session_id` in the background until the slot opens or the
+/// deadline passes, posting the outcome to `channel_id`.
+async fn retry_book(
+    http: Arc<serenity::Http>,
+    channel_id: serenity::ChannelId,
+    config: Config,
+    session_id: String,
+    retry_duration: u64,
+    retry_interval: u64,
+) {
+    let deadline = tokio::time::Instant::now() + Duration::from_secs(retry_duration);
+
+    loop {
+        let sid = session_id.clone();
+        let result = with_client(config.clone(), move |c| {
+            Ok(c.book_session(&Session::from_id(sid)))
+        })
+        .await;
+
+        match result {
+            Ok(Ok(_)) => {
+                let _ = channel_id
+                    .say(&http, format!("Booked: `{session_id}`"))
+                    .await;
+                return;
+            }
+            Ok(Err(BookError::SlotNotOpen(_))) => {
+                if tokio::time::Instant::now() >= deadline {
+                    let _ = channel_id.say(&http, "Booking window expired.").await;
+                    return;
+                }
+                tokio::time::sleep(Duration::from_secs(retry_interval)).await;
+            }
+            _ => {
+                let _ = channel_id
+                    .say(&http, "Booking failed with an unexpected error.")
+                    .await;
+                return;
+            }
+        }
     }
 }
 
@@ -79,15 +150,9 @@ async fn autocomplete_session(ctx: Context<'_>, partial: &str) -> Vec<Autocomple
     let config = ctx.data().config.clone();
     let partial = partial.to_lowercase();
 
-    let sessions = tokio::task::spawn_blocking(move || -> anyhow::Result<Vec<Session>> {
-        let mut client = MonClubClient::new(config);
-        client.authenticate()?;
-        client.list_sessions()
-    })
-    .await
-    .ok()
-    .and_then(Result::ok)
-    .unwrap_or_default();
+    let sessions = with_client(config, MonClubClient::list_sessions)
+        .await
+        .unwrap_or_default();
 
     sessions
         .into_iter()
@@ -108,15 +173,9 @@ async fn autocomplete_booking(ctx: Context<'_>, partial: &str) -> Vec<Autocomple
     let config = ctx.data().config.clone();
     let partial = partial.to_lowercase();
 
-    let bookings = tokio::task::spawn_blocking(move || -> anyhow::Result<Vec<Booking>> {
-        let mut client = MonClubClient::new(config);
-        client.authenticate()?;
-        client.list_bookings()
-    })
-    .await
-    .ok()
-    .and_then(Result::ok)
-    .unwrap_or_default();
+    let bookings = with_client(config, MonClubClient::list_bookings)
+        .await
+        .unwrap_or_default();
 
     bookings
         .into_iter()
@@ -159,10 +218,7 @@ async fn booking(
     #[autocomplete = "autocomplete_booking"]
     booking: String,
 ) -> Result<(), Error> {
-    if !is_owner(&ctx) {
-        ctx.say("Unauthorized.").await?;
-        return Ok(());
-    }
+    ensure_owner!(ctx);
 
     ctx.defer().await?;
 
@@ -174,12 +230,7 @@ async fn booking(
     let sid = session_id.to_string();
     let config = ctx.data().config.clone();
 
-    let detail = tokio::task::spawn_blocking(move || -> anyhow::Result<SessionDetail> {
-        let mut client = MonClubClient::new(config);
-        client.authenticate()?;
-        client.get_session(&sid)
-    })
-    .await??;
+    let detail = with_client(config, move |c| c.get_session(&sid)).await?;
 
     let lines = format_session_detail(&detail);
     send_chunked(ctx, &lines).await
@@ -188,21 +239,13 @@ async fn booking(
 /// List your upcoming bookings
 #[poise::command(slash_command)]
 async fn bookings(ctx: Context<'_>) -> Result<(), Error> {
-    if !is_owner(&ctx) {
-        ctx.say("Unauthorized.").await?;
-        return Ok(());
-    }
+    ensure_owner!(ctx);
 
     ctx.defer().await?;
 
     let config = ctx.data().config.clone();
 
-    let bookings = tokio::task::spawn_blocking(move || -> anyhow::Result<Vec<Booking>> {
-        let mut client = MonClubClient::new(config);
-        client.authenticate()?;
-        client.list_bookings()
-    })
-    .await??;
+    let bookings = with_client(config, MonClubClient::list_bookings).await?;
 
     if bookings.is_empty() {
         ctx.say("No upcoming bookings.").await?;
@@ -224,21 +267,13 @@ async fn list(
     #[min = 1]
     limit: Option<u64>,
 ) -> Result<(), Error> {
-    if !is_owner(&ctx) {
-        ctx.say("Unauthorized.").await?;
-        return Ok(());
-    }
+    ensure_owner!(ctx);
 
     ctx.defer().await?;
 
     let config = ctx.data().config.clone();
 
-    let mut sessions = tokio::task::spawn_blocking(move || -> anyhow::Result<Vec<Session>> {
-        let mut client = MonClubClient::new(config);
-        client.authenticate()?;
-        client.list_sessions()
-    })
-    .await??;
+    let mut sessions = with_client(config, MonClubClient::list_sessions).await?;
 
     if sessions.is_empty() {
         ctx.say("No sessions available.").await?;
@@ -269,32 +304,16 @@ async fn book(
     #[autocomplete = "autocomplete_session"]
     session_id: String,
 ) -> Result<(), Error> {
-    if !is_owner(&ctx) {
-        ctx.say("Unauthorized.").await?;
-        return Ok(());
-    }
+    ensure_owner!(ctx);
 
     ctx.defer().await?;
 
     let config = ctx.data().config.clone();
     let sid = session_id.clone();
 
-    // Wrap the booking call so authenticate errors and BookError are handled separately
-    let book_result = tokio::task::spawn_blocking(
-        move || -> anyhow::Result<Result<serde_json::Value, BookError>> {
-            let mut client = MonClubClient::new(config);
-            client.authenticate()?;
-            Ok(client.book_session(&Session {
-                id: sid,
-                name: None,
-                date: None,
-                time: None,
-                yes_participants: vec![],
-                total_capacity: None,
-            }))
-        },
-    )
-    .await??;
+    // Handle authenticate errors and BookError separately.
+    let book_result =
+        with_client(config, move |c| Ok(c.book_session(&Session::from_id(sid)))).await?;
 
     match book_result {
         Ok(_) => {
@@ -313,55 +332,14 @@ async fn book(
             let channel_id = ctx.channel_id();
             let config = ctx.data().config.clone();
 
-            tokio::spawn(async move {
-                let deadline = tokio::time::Instant::now() + Duration::from_secs(retry_duration);
-
-                loop {
-                    tokio::time::sleep(Duration::from_secs(retry_interval)).await;
-
-                    if tokio::time::Instant::now() >= deadline {
-                        let _ = channel_id.say(&http, "Booking window expired.").await;
-                        return;
-                    }
-
-                    let config = config.clone();
-                    let sid = session_id.clone();
-
-                    let result = tokio::task::spawn_blocking(
-                        move || -> anyhow::Result<Result<serde_json::Value, BookError>> {
-                            let mut client = MonClubClient::new(config);
-                            client.authenticate()?;
-                            Ok(client.book_session(&Session {
-                                id: sid,
-                                name: None,
-                                date: None,
-                                time: None,
-                                yes_participants: vec![],
-                                total_capacity: None,
-                            }))
-                        },
-                    )
-                    .await;
-
-                    match result {
-                        Ok(Ok(Ok(_))) => {
-                            let _ = channel_id
-                                .say(&http, format!("Booked: `{session_id}`"))
-                                .await;
-                            return;
-                        }
-                        Ok(Ok(Err(BookError::SlotNotOpen(_)))) => {
-                            // keep retrying
-                        }
-                        _ => {
-                            let _ = channel_id
-                                .say(&http, "Booking failed with an unexpected error.")
-                                .await;
-                            return;
-                        }
-                    }
-                }
-            });
+            tokio::spawn(retry_book(
+                http,
+                channel_id,
+                config,
+                session_id,
+                retry_duration,
+                retry_interval,
+            ));
         }
         Err(BookError::Request(e)) => {
             ctx.say(format!("Booking failed: {e}")).await?;
@@ -380,10 +358,7 @@ async fn prebook(
     session_id: String,
     #[description = "When to book: HH:MM or YYYY-MM-DD HH:MM (local time)"] when: String,
 ) -> Result<(), Error> {
-    if !is_owner(&ctx) {
-        ctx.say("Unauthorized.").await?;
-        return Ok(());
-    }
+    ensure_owner!(ctx);
 
     let target = match parse_when(&when) {
         Ok(t) => t,
@@ -421,51 +396,15 @@ async fn prebook(
 
     tokio::spawn(async move {
         tokio::time::sleep(wait).await;
-
-        let deadline = tokio::time::Instant::now() + Duration::from_secs(retry_duration);
-
-        loop {
-            let config_c = config.clone();
-            let sid = session_id.clone();
-
-            let result = tokio::task::spawn_blocking(
-                move || -> anyhow::Result<Result<serde_json::Value, BookError>> {
-                    let mut client = MonClubClient::new(config_c);
-                    client.authenticate()?;
-                    Ok(client.book_session(&Session {
-                        id: sid,
-                        name: None,
-                        date: None,
-                        time: None,
-                        yes_participants: vec![],
-                        total_capacity: None,
-                    }))
-                },
-            )
-            .await;
-
-            match result {
-                Ok(Ok(Ok(_))) => {
-                    let _ = channel_id
-                        .say(&http, format!("Booked: `{session_id}`"))
-                        .await;
-                    return;
-                }
-                Ok(Ok(Err(BookError::SlotNotOpen(_)))) => {
-                    if tokio::time::Instant::now() >= deadline {
-                        let _ = channel_id.say(&http, "Booking window expired.").await;
-                        return;
-                    }
-                    tokio::time::sleep(Duration::from_secs(retry_interval)).await;
-                }
-                _ => {
-                    let _ = channel_id
-                        .say(&http, "Booking failed with an unexpected error.")
-                        .await;
-                    return;
-                }
-            }
-        }
+        retry_book(
+            http,
+            channel_id,
+            config,
+            session_id,
+            retry_duration,
+            retry_interval,
+        )
+        .await;
     });
 
     Ok(())
@@ -479,10 +418,7 @@ async fn cancel(
     #[autocomplete = "autocomplete_booking"]
     booking: String,
 ) -> Result<(), Error> {
-    if !is_owner(&ctx) {
-        ctx.say("Unauthorized.").await?;
-        return Ok(());
-    }
+    ensure_owner!(ctx);
 
     ctx.defer().await?;
 
@@ -499,13 +435,7 @@ async fn cancel(
 
     let config = ctx.data().config.clone();
 
-    tokio::task::spawn_blocking(move || -> anyhow::Result<()> {
-        let mut client = MonClubClient::new(config);
-        client.authenticate()?;
-        client.cancel_booking(&b)?;
-        Ok(())
-    })
-    .await??;
+    with_client(config, move |c| c.cancel_booking(&b).map(|_| ())).await?;
 
     ctx.say(format!("Cancelled booking `{booking_id}`."))
         .await?;
@@ -537,21 +467,14 @@ async fn compare(
     #[autocomplete = "autocomplete_session"]
     session_b: String,
 ) -> Result<(), Error> {
-    if !is_owner(&ctx) {
-        ctx.say("Unauthorized.").await?;
-        return Ok(());
-    }
+    ensure_owner!(ctx);
 
     ctx.defer().await?;
 
     let config = ctx.data().config.clone();
 
-    let comparison = tokio::task::spawn_blocking(move || -> anyhow::Result<SessionComparison> {
-        let mut client = MonClubClient::new(config);
-        client.authenticate()?;
-        client.compare_sessions(&session_a, &session_b)
-    })
-    .await??;
+    let comparison =
+        with_client(config, move |c| c.compare_sessions(&session_a, &session_b)).await?;
 
     let lines = format_comparison(&comparison);
     send_chunked(ctx, &lines).await

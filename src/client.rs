@@ -75,6 +75,21 @@ impl fmt::Display for Session {
     }
 }
 
+impl Session {
+    /// A minimal `Session` carrying only its id, for booking by id without
+    /// having fetched the full listing.
+    pub fn from_id(id: String) -> Self {
+        Self {
+            id,
+            name: None,
+            date: None,
+            time: None,
+            yes_participants: vec![],
+            total_capacity: None,
+        }
+    }
+}
+
 #[derive(Debug, Deserialize)]
 pub struct BookingSession {
     #[serde(rename = "sessionName")]
@@ -411,6 +426,19 @@ fn deserialize_array<T: serde::de::DeserializeOwned>(raw: Value) -> Result<Vec<T
     }
 }
 
+/// Build `n` left-aligned tabular columns separated by " | " for `Select`.
+fn left_columns(n: usize) -> Vec<ColumnConfig> {
+    (0..n)
+        .map(|i| {
+            if i + 1 < n {
+                ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left)
+            } else {
+                ColumnConfig::new(ColumnAlignment::Left)
+            }
+        })
+        .collect()
+}
+
 pub struct MonClubClient {
     config: Config,
     http: Client,
@@ -541,12 +569,16 @@ impl MonClubClient {
         deserialize_array(raw)
     }
 
-    pub fn list_bookings(&self) -> Result<Vec<Booking>> {
+    /// Fetch the user's bookings for a given temporality.
+    ///
+    /// `temporality` is `fromToday` for upcoming bookings, `beforeToday` for
+    /// past ones.
+    fn fetch_bookings(&self, temporality: &str) -> Result<Vec<Booking>> {
         let raw: Value = self
             .http
             .get(self.endpoint(&format!("/bookings/user/{}", self.user_id())))
             .header("authorization", self.token())
-            .query(&[("category", "ondemand"), ("temporality", "fromToday")])
+            .query(&[("category", "ondemand"), ("temporality", temporality)])
             .send()?
             .error_for_status()?
             .json()?;
@@ -554,17 +586,12 @@ impl MonClubClient {
         deserialize_array(raw)
     }
 
-    pub fn list_previous_bookings(&self) -> Result<Vec<Booking>> {
-        let raw: Value = self
-            .http
-            .get(self.endpoint(&format!("/bookings/user/{}", self.user_id())))
-            .header("authorization", self.token())
-            .query(&[("category", "ondemand"), ("temporality", "beforeToday")])
-            .send()?
-            .error_for_status()?
-            .json()?;
+    pub fn list_bookings(&self) -> Result<Vec<Booking>> {
+        self.fetch_bookings("fromToday")
+    }
 
-        deserialize_array(raw)
+    pub fn list_previous_bookings(&self) -> Result<Vec<Booking>> {
+        self.fetch_bookings("beforeToday")
     }
 
     fn find_target_session(&self) -> Result<Option<Session>> {
@@ -576,34 +603,45 @@ impl MonClubClient {
         }
 
         let session = Select::new("Select a session to book:", sessions)
-            .with_tabular_columns(vec![
-                ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left),
-                ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left),
-                ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left),
-                ColumnConfig::new(ColumnAlignment::Left),
-            ])
+            .with_tabular_columns(left_columns(4))
             .prompt()?;
 
         Ok(Some(session))
     }
 
-    pub fn book_session(&self, session: &Session) -> Result<Value, BookError> {
-        info!("Booking '{}' (id={})...", session, session.id);
-
-        let resp = self
-            .http
+    /// Send a presence request to the shared book/cancel endpoint.
+    ///
+    /// `/sessions/book/licenseeFromClub` handles both booking and cancelling;
+    /// the `isPresent` field on the `participant` distinguishes them. The raw
+    /// response is returned so callers can apply their own status handling
+    /// (booking treats `409` specially; cancellation does not).
+    fn post_presence(
+        &self,
+        participant: &Value,
+        session_id: &str,
+    ) -> reqwest::Result<reqwest::blocking::Response> {
+        self.http
             .post(self.endpoint("/sessions/book/licenseeFromClub"))
             .header("authorization", self.token())
             .json(&json!({
-                "participant": {
-                    "userId":      self.user_id,
-                    "isPresent":   "yes",
-                    "coordinates": null,
-                },
-                "sessionId": session.id,
-                "customId":  self.config.custom_id,
+                "participant": participant,
+                "sessionId":   session_id,
+                "customId":    self.config.custom_id,
             }))
-            .send()?;
+            .send()
+    }
+
+    pub fn book_session(&self, session: &Session) -> Result<Value, BookError> {
+        info!("Booking '{}' (id={})...", session, session.id);
+
+        let resp = self.post_presence(
+            &json!({
+                "userId":      self.user_id,
+                "isPresent":   "yes",
+                "coordinates": null,
+            }),
+            &session.id,
+        )?;
 
         if resp.status() == reqwest::StatusCode::CONFLICT {
             return Err(BookError::SlotNotOpen(resp.text().unwrap_or_default()));
@@ -634,108 +672,45 @@ impl MonClubClient {
         info!("Cancelling '{}' (bookingId={})...", booking, booking.id);
 
         Ok(self
-            .http
-            .post(self.endpoint("/sessions/book/licenseeFromClub"))
-            .header("authorization", self.token())
-            .json(&json!({
-                "participant": {
+            .post_presence(
+                &json!({
                     "userId":      self.user_id,
                     "isPresent":   "no",
                     "coordinates": null,
                     "bookingId":   booking.id,
-                },
-                "sessionId": booking.session_id,
-                "customId":  self.config.custom_id,
-            }))
-            .send()?
+                }),
+                &booking.session_id,
+            )?
             .error_for_status()?
             .json()?)
     }
 
-    pub fn run_book(&self, session_id: Option<String>) -> Result<()> {
+    /// Book `session`, retrying while the server answers `409` (slot not open
+    /// yet) until the configured deadline. Any other error is fatal and exits
+    /// the process. Shared by the direct-id, interactive and pre-book flows.
+    fn book_with_retry(&self, session: &Session) -> Result<()> {
         let deadline = Instant::now() + Duration::from_secs(self.config.retry_duration);
         let mut attempt = 0u32;
 
-        // When an ID is provided directly, skip the interactive picker entirely.
-        if let Some(id) = session_id {
-            let session = Session {
-                id,
-                name: None,
-                date: None,
-                time: None,
-                yes_participants: vec![],
-                total_capacity: None,
-            };
-            loop {
-                attempt += 1;
-                info!("Attempt {attempt} - booking session '{}'...", session.id);
-
-                match self.book_session(&session) {
-                    Ok(_) => {
-                        println!("Booking confirmed!");
-                        return Ok(());
-                    }
-                    Err(BookError::SlotNotOpen(body)) => {
-                        warn!("409 slot not open yet: {body}");
-                        if Instant::now() >= deadline {
-                            eprintln!("Booking window expired.");
-                            std::process::exit(1);
-                        }
-                        println!(
-                            "Slot not open yet. Retrying in {}s...",
-                            self.config.retry_interval
-                        );
-                        thread::sleep(Duration::from_secs(self.config.retry_interval));
-                    }
-                    Err(e) => {
-                        eprintln!("Booking failed: {e}");
-                        std::process::exit(1);
-                    }
-                }
-            }
-        }
-
         loop {
             attempt += 1;
-            info!("Attempt {attempt} - searching for target session...");
+            info!("Attempt {attempt} - booking session '{}'...", session.id);
 
-            let Some(session) = self.find_target_session()? else {
-                if Instant::now() >= deadline {
-                    eprintln!("Session not found after retries. Giving up.");
-                    std::process::exit(1);
-                }
-                println!(
-                    "No matching session yet. Retrying in {}s...",
-                    self.config.retry_interval
-                );
-                thread::sleep(Duration::from_secs(self.config.retry_interval));
-                continue;
-            };
-
-            let confirmed = Confirm::new(&format!("Book '{session}'?"))
-                .with_default(true)
-                .prompt()?;
-
-            if !confirmed {
-                println!("Booking cancelled.");
-                return Ok(());
-            }
-
-            match self.book_session(&session) {
+            match self.book_session(session) {
                 Ok(_) => {
                     println!("Booking confirmed!");
                     return Ok(());
                 }
                 Err(BookError::SlotNotOpen(body)) => {
                     warn!("409 slot not open yet: {body}");
-                    println!(
-                        "Slot not open yet. Retrying in {}s...",
-                        self.config.retry_interval
-                    );
                     if Instant::now() >= deadline {
                         eprintln!("Booking window expired.");
                         std::process::exit(1);
                     }
+                    println!(
+                        "Slot not open yet. Retrying in {}s...",
+                        self.config.retry_interval
+                    );
                     thread::sleep(Duration::from_secs(self.config.retry_interval));
                 }
                 Err(e) => {
@@ -746,30 +721,53 @@ impl MonClubClient {
         }
     }
 
+    pub fn run_book(&self, session_id: Option<String>) -> Result<()> {
+        // When an ID is provided directly, skip the interactive picker entirely.
+        if let Some(id) = session_id {
+            return self.book_with_retry(&Session::from_id(id));
+        }
+
+        // Interactive: wait for a session to appear in the listing, confirm
+        // once, then let the booking retry loop handle the rest.
+        let deadline = Instant::now() + Duration::from_secs(self.config.retry_duration);
+        let session = loop {
+            info!("Searching for target session...");
+            if let Some(session) = self.find_target_session()? {
+                break session;
+            }
+            if Instant::now() >= deadline {
+                eprintln!("Session not found after retries. Giving up.");
+                std::process::exit(1);
+            }
+            println!(
+                "No matching session yet. Retrying in {}s...",
+                self.config.retry_interval
+            );
+            thread::sleep(Duration::from_secs(self.config.retry_interval));
+        };
+
+        let confirmed = Confirm::new(&format!("Book '{session}'?"))
+            .with_default(true)
+            .prompt()?;
+
+        if !confirmed {
+            println!("Booking cancelled.");
+            return Ok(());
+        }
+
+        self.book_with_retry(&session)
+    }
+
     pub fn run_prebook(&self, session_id: Option<String>, when: Option<String>) -> Result<()> {
         // Step 1: pick a session (or use the provided ID directly)
         let session = match session_id {
-            Some(id) => Session {
-                id,
-                name: None,
-                date: None,
-                time: None,
-                yes_participants: vec![],
-                total_capacity: None,
-            },
+            Some(id) => Session::from_id(id),
             None => {
                 if let Some(s) = self.find_target_session()? {
                     s
                 } else {
                     let id = Text::new("No sessions found. Enter session ID manually:").prompt()?;
-                    Session {
-                        id,
-                        name: None,
-                        date: None,
-                        time: None,
-                        yes_participants: vec![],
-                        total_capacity: None,
-                    }
+                    Session::from_id(id)
                 }
             }
         };
@@ -798,37 +796,8 @@ impl MonClubClient {
         thread::sleep(wait);
         println!("Target time reached. Booking now...");
 
-        // Step 3: booking retry loop
-        let deadline = Instant::now() + Duration::from_secs(self.config.retry_duration);
-        let mut attempt = 0u32;
-
-        loop {
-            attempt += 1;
-            info!("Pre-book attempt {attempt}...");
-
-            match self.book_session(&session) {
-                Ok(_) => {
-                    println!("Booking confirmed!");
-                    return Ok(());
-                }
-                Err(BookError::SlotNotOpen(body)) => {
-                    warn!("409 slot not open yet: {body}");
-                    if Instant::now() >= deadline {
-                        eprintln!("Booking window expired.");
-                        std::process::exit(1);
-                    }
-                    println!(
-                        "Slot not open yet. Retrying in {}s...",
-                        self.config.retry_interval
-                    );
-                    thread::sleep(Duration::from_secs(self.config.retry_interval));
-                }
-                Err(e) => {
-                    eprintln!("Booking failed: {e}");
-                    std::process::exit(1);
-                }
-            }
-        }
+        // Step 3: retry the booking until the slot opens
+        self.book_with_retry(&session)
     }
 
     pub fn run_manage_bookings(&self) -> Result<()> {
@@ -840,12 +809,7 @@ impl MonClubClient {
         }
 
         let booking = Select::new("Select a booking:", bookings)
-            .with_tabular_columns(vec![
-                ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left),
-                ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left),
-                ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left),
-                ColumnConfig::new(ColumnAlignment::Left),
-            ])
+            .with_tabular_columns(left_columns(4))
             .prompt()?;
 
         let booking_action = Select::new(
@@ -901,12 +865,7 @@ impl MonClubClient {
         }
 
         let booking = Select::new("Select a previous session:", bookings)
-            .with_tabular_columns(vec![
-                ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left),
-                ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left),
-                ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left),
-                ColumnConfig::new(ColumnAlignment::Left),
-            ])
+            .with_tabular_columns(left_columns(4))
             .prompt()?;
 
         let detail = self.get_session(&booking.session_id)?;
@@ -978,11 +937,7 @@ impl MonClubClient {
                 return Err(anyhow!("No sessions available"));
             }
             let s = Select::new("Select session A:", sessions)
-                .with_tabular_columns(vec![
-                    ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left),
-                    ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left),
-                    ColumnConfig::new(ColumnAlignment::Left),
-                ])
+                .with_tabular_columns(left_columns(3))
                 .prompt()?;
             s.id
         };
@@ -999,11 +954,7 @@ impl MonClubClient {
                 return Err(anyhow!("No other sessions available"));
             }
             let s = Select::new("Select session B:", sessions)
-                .with_tabular_columns(vec![
-                    ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left),
-                    ColumnConfig::new_with_separator(" | ", ColumnAlignment::Left),
-                    ColumnConfig::new(ColumnAlignment::Left),
-                ])
+                .with_tabular_columns(left_columns(3))
                 .prompt()?;
             s.id
         };

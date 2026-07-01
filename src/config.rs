@@ -5,6 +5,11 @@ fn env_parse<T: std::str::FromStr>(key: &str, default: T) -> T {
         .unwrap_or(default)
 }
 
+/// Parse an optional env var, returning `None` when it is unset or unparseable.
+fn env_opt<T: std::str::FromStr>(key: &str) -> Option<T> {
+    std::env::var(key).ok().and_then(|v| v.parse().ok())
+}
+
 #[derive(Clone)]
 pub struct Config {
     pub email: String,
@@ -46,16 +51,14 @@ impl Config {
             password: std::env::var("PASSWORD").expect("PASSWORD not set"),
             custom_id: std::env::var("CUSTOM_ID").expect("CUSTOM_ID not set"),
             base_url: std::env::var("BASE_URL").expect("BASE_URL not set"),
-            latitude: std::env::var("LATITUDE").ok().and_then(|v| v.parse().ok()),
-            longitude: std::env::var("LONGITUDE").ok().and_then(|v| v.parse().ok()),
+            latitude: env_opt("LATITUDE"),
+            longitude: env_opt("LONGITUDE"),
             retry_duration: env_parse("RETRY_DURATION", 300),
             retry_interval: env_parse("RETRY_INTERVAL", 5),
             discord_token: std::env::var("DISCORD_TOKEN")
                 .ok()
                 .filter(|s| !s.is_empty()),
-            discord_owner_id: std::env::var("DISCORD_OWNER_ID")
-                .ok()
-                .and_then(|v| v.parse().ok()),
+            discord_owner_id: env_opt("DISCORD_OWNER_ID"),
         }
     }
 }
