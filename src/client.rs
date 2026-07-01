@@ -81,10 +81,19 @@ pub struct BookingSession {
     pub name: Option<String>,
     pub date: Option<String>,
     pub time: Option<String>,
-    #[serde(rename = "yesParticipants", default)]
-    pub yes_participants: Vec<String>,
+    // The `/bookings/user` endpoint always returns an empty `yesParticipants`;
+    // the real participant list comes through `attendees` instead.
+    #[serde(default)]
+    pub attendees: Vec<SessionAttendee>,
     #[serde(rename = "totalQuantityFree")]
     pub total_capacity: Option<u32>,
+}
+
+impl BookingSession {
+    /// Number of active (non-deleted) participants for this booking's session.
+    fn participant_count(&self) -> usize {
+        self.attendees.iter().filter(|a| !a.deleted).count()
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -139,6 +148,8 @@ pub struct SessionDetail {
 pub struct SessionAttendee {
     #[serde(rename = "fullName")]
     pub full_name: Option<String>,
+    #[serde(default)]
+    pub deleted: bool,
 }
 
 impl SessionDetail {
@@ -234,8 +245,8 @@ impl fmt::Display for Booking {
         let participants = s.map_or_else(
             || "?".to_string(),
             |s| match s.total_capacity {
-                Some(cap) => format!("{}/{cap}", s.yes_participants.len()),
-                None => s.yes_participants.len().to_string(),
+                Some(cap) => format!("{}/{cap}", s.participant_count()),
+                None => s.participant_count().to_string(),
             },
         );
         write!(
