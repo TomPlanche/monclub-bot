@@ -5,7 +5,7 @@ use chrono::Local;
 use monclub_bot::client::{
     BookError, Booking, MonClubClient, Session, SessionComparison, SessionDetail, parse_when,
 };
-use monclub_bot::config::Config;
+use monclub_bot::config::{Account, Config, same_identity};
 use monclub_bot::logging;
 use poise::serenity_prelude::{self as serenity, AutocompleteChoice};
 use tracing::info;
@@ -52,21 +52,108 @@ where
     .await?
 }
 
+/// Like [`with_client`], but authenticates as a specific `account` rather than
+/// the primary one. Used to book/cancel on behalf of other linked users.
+async fn with_account<T, F>(config: Config, account: Account, f: F) -> anyhow::Result<T>
+where
+    T: Send + 'static,
+    F: FnOnce(&MonClubClient) -> anyhow::Result<T> + Send + 'static,
+{
+    tokio::task::spawn_blocking(move || {
+        let mut client = MonClubClient::with_account(config, account);
+        client.authenticate()?;
+        f(&client)
+    })
+    .await?
+}
+
+/// Extract a Discord user id from a mention token like `<@123>` or `<@!123>`.
+fn parse_mention(token: &str) -> Option<u64> {
+    let inner = token.strip_prefix("<@")?.strip_suffix('>')?;
+    let inner = inner.strip_prefix('!').unwrap_or(inner);
+    inner.parse().ok()
+}
+
+/// Whether a token means "every configured account": `@everyone`, `everyone`,
+/// or `all` (case-insensitive).
+fn is_everyone(token: &str) -> bool {
+    let t = token.trim_start_matches('@');
+    t.eq_ignore_ascii_case("everyone") || t.eq_ignore_ascii_case("all")
+}
+
+/// Resolve the optional `users` argument to the accounts a command should act
+/// on.
+///
+/// When `users` is absent or blank, targets the caller's own linked account,
+/// falling back to the primary account when the caller is not explicitly
+/// linked. `@everyone` (or `everyone`/`all`) targets every configured account.
+/// Otherwise each whitespace-separated token is resolved as a Discord mention
+/// (`<@id>`), a raw Discord id, or an account label. Duplicates (same
+/// `MonClub` identity) are removed. Returns an error naming any unresolved token.
+fn resolve_targets(ctx: &Context<'_>, users: Option<&str>) -> Result<Vec<Account>, String> {
+    let config = &ctx.data().config;
+
+    let tokens: Vec<&str> = users
+        .map(|s| s.split_whitespace().collect())
+        .unwrap_or_default();
+
+    if tokens.is_empty() {
+        let caller = ctx.author().id.get();
+        let account = config
+            .account_for_discord(caller)
+            .unwrap_or_else(|| config.primary_account());
+        return Ok(vec![account]);
+    }
+
+    // `@everyone` expands to every distinct configured account.
+    if tokens.iter().any(|t| is_everyone(t)) {
+        return Ok(config.distinct_accounts());
+    }
+
+    let mut resolved: Vec<Account> = Vec::new();
+    let mut unresolved: Vec<String> = Vec::new();
+
+    for token in tokens {
+        let account = parse_mention(token)
+            .or_else(|| token.parse::<u64>().ok())
+            .and_then(|id| config.account_for_discord(id))
+            .or_else(|| config.account_for_label(token));
+
+        match account {
+            // De-duplicate when the same person is named twice.
+            Some(a) if !resolved.iter().any(|r| same_identity(r, &a)) => resolved.push(a),
+            Some(_) => {}
+            None => unresolved.push(token.to_string()),
+        }
+    }
+
+    if !unresolved.is_empty() {
+        return Err(format!(
+            "No linked MonClub account for: {}",
+            unresolved.join(", ")
+        ));
+    }
+
+    Ok(resolved)
+}
+
 /// Retry booking `session_id` in the background until the slot opens or the
 /// deadline passes, posting the outcome to `channel_id`.
 async fn retry_book(
     http: Arc<serenity::Http>,
     channel_id: serenity::ChannelId,
     config: Config,
+    account: Account,
     session_id: String,
     retry_duration: u64,
     retry_interval: u64,
 ) {
     let deadline = tokio::time::Instant::now() + Duration::from_secs(retry_duration);
+    let label = account.label.clone();
 
     loop {
         let sid = session_id.clone();
-        let result = with_client(config.clone(), move |c| {
+        let result = with_account(config.clone(), account.clone(), move |c| {
             Ok(c.book_session(&Session::from_id(sid)))
         })
         .await;
@@ -74,20 +161,33 @@ async fn retry_book(
         match result {
             Ok(Ok(_)) => {
                 let _ = channel_id
-                    .say(&http, format!("Booked: `{session_id}`"))
+                    .say(&http, format!("Booked `{session_id}` for {label}."))
                     .await;
                 return;
             }
             Ok(Err(BookError::SlotNotOpen(_))) => {
                 if tokio::time::Instant::now() >= deadline {
-                    let _ = channel_id.say(&http, "Booking window expired.").await;
+                    let _ = channel_id
+                        .say(&http, format!("Booking window expired for {label}."))
+                        .await;
                     return;
                 }
                 tokio::time::sleep(Duration::from_secs(retry_interval)).await;
             }
+            // A rejection (e.g. no credits) won't clear by retrying: stop and
+            // report its message.
+            Ok(Err(e @ BookError::Rejected { .. })) => {
+                let _ = channel_id
+                    .say(&http, format!("Booking failed for {label}: {e}"))
+                    .await;
+                return;
+            }
             _ => {
                 let _ = channel_id
-                    .say(&http, "Booking failed with an unexpected error.")
+                    .say(
+                        &http,
+                        format!("Booking failed for {label} with an unexpected error."),
+                    )
                     .await;
                 return;
             }
@@ -296,60 +396,173 @@ async fn list(
     send_chunked(ctx, &lines).await
 }
 
-/// Book a session
+/// Book `session_id` for a group of accounts atomically: if any account fails,
+/// the bookings that already succeeded are cancelled (rolled back), so the group
+/// is all-or-nothing. Used when booking for more than one person (e.g.
+/// `@everyone`). No background retry here — a slot that isn't open yet counts as
+/// a failure for the group (use `/prebook` to schedule instead).
+async fn book_group_atomic(
+    ctx: &Context<'_>,
+    session_id: &str,
+    targets: &[Account],
+) -> Result<(), Error> {
+    let mut booked: Vec<Account> = Vec::new();
+    let mut failures: Vec<String> = Vec::new();
+
+    for account in targets {
+        let config = ctx.data().config.clone();
+        let sid = session_id.to_string();
+        let result = with_account(config, account.clone(), move |c| {
+            Ok(c.book_session(&Session::from_id(sid)))
+        })
+        .await;
+
+        match result {
+            Ok(Ok(_)) => booked.push(account.clone()),
+            Ok(Err(BookError::SlotNotOpen(_))) => {
+                failures.push(format!("{} (slot not open yet)", account.label));
+            }
+            Ok(Err(e)) => failures.push(format!("{} ({e})", account.label)),
+            Err(e) => failures.push(format!("{} ({e})", account.label)),
+        }
+    }
+
+    if failures.is_empty() {
+        let labels: Vec<&str> = booked.iter().map(|a| a.label.as_str()).collect();
+        ctx.say(format!("Booked `{session_id}` for: {}", labels.join(", ")))
+            .await?;
+        return Ok(());
+    }
+
+    // At least one failed: roll back everyone who was booked in this group.
+    let mut rolled_back: Vec<String> = Vec::new();
+    let mut rollback_errors: Vec<String> = Vec::new();
+
+    for account in &booked {
+        let config = ctx.data().config.clone();
+        let sid = session_id.to_string();
+        let result = with_account(config, account.clone(), move |c| {
+            c.cancel_session_booking(&sid)
+        })
+        .await;
+
+        match result {
+            // Cancelled, or nothing to cancel: either way it is rolled back.
+            Ok(_) => rolled_back.push(account.label.clone()),
+            Err(e) => rollback_errors.push(format!("{} ({e})", account.label)),
+        }
+    }
+
+    let mut lines = vec![format!(
+        "Booking failed for: {}. Rolled back the whole group.",
+        failures.join(", ")
+    )];
+    if !rolled_back.is_empty() {
+        lines.push(format!("Cancelled: {}", rolled_back.join(", ")));
+    }
+    if !rollback_errors.is_empty() {
+        lines.push(format!(
+            "WARNING: rollback failed for: {} — please cancel manually.",
+            rollback_errors.join(", ")
+        ));
+    }
+
+    ctx.say(lines.join("\n")).await?;
+    Ok(())
+}
+
+/// Book a session, optionally for other linked users
 #[poise::command(slash_command)]
 async fn book(
     ctx: Context<'_>,
     #[description = "Session to book"]
     #[autocomplete = "autocomplete_session"]
     session_id: String,
+    #[description = "People to book for (mentions, labels, or @everyone); defaults to you"]
+    users: Option<String>,
 ) -> Result<(), Error> {
     ensure_owner!(ctx);
 
     ctx.defer().await?;
 
-    let config = ctx.data().config.clone();
-    let sid = session_id.clone();
-
-    // Handle authenticate errors and BookError separately.
-    let book_result =
-        with_client(config, move |c| Ok(c.book_session(&Session::from_id(sid)))).await?;
-
-    match book_result {
-        Ok(_) => {
-            ctx.say(format!("Booked: `{session_id}`")).await?;
+    let targets = match resolve_targets(&ctx, users.as_deref()) {
+        Ok(t) => t,
+        Err(e) => {
+            ctx.say(e).await?;
+            return Ok(());
         }
-        Err(BookError::SlotNotOpen(_)) => {
-            let retry_duration = ctx.data().config.retry_duration;
-            let retry_interval = ctx.data().config.retry_interval;
+    };
 
-            ctx.say(format!(
-                "Slot not open yet. Retrying every {retry_interval}s for up to {retry_duration}s..."
-            ))
-            .await?;
+    // Booking for several people is atomic (all-or-nothing with rollback). A
+    // single target keeps the immediate + background-retry behaviour below.
+    if targets.len() > 1 {
+        return book_group_atomic(&ctx, &session_id, &targets).await;
+    }
 
-            let http = ctx.serenity_context().http.clone();
-            let channel_id = ctx.channel_id();
-            let config = ctx.data().config.clone();
+    let mut booked: Vec<String> = Vec::new();
+    let mut retrying: Vec<String> = Vec::new();
+    let mut failed: Vec<String> = Vec::new();
 
-            tokio::spawn(retry_book(
-                http,
-                channel_id,
-                config,
-                session_id,
-                retry_duration,
-                retry_interval,
-            ));
-        }
-        Err(BookError::Request(e)) => {
-            ctx.say(format!("Booking failed: {e}")).await?;
+    for account in targets {
+        let config = ctx.data().config.clone();
+        let label = account.label.clone();
+        let sid = session_id.clone();
+
+        // Handle authenticate errors and BookError separately.
+        let book_result = with_account(config, account.clone(), move |c| {
+            Ok(c.book_session(&Session::from_id(sid)))
+        })
+        .await;
+
+        match book_result {
+            Ok(Ok(_)) => booked.push(label),
+            Ok(Err(BookError::SlotNotOpen(_))) => {
+                let retry_duration = ctx.data().config.retry_duration;
+                let retry_interval = ctx.data().config.retry_interval;
+                let http = ctx.serenity_context().http.clone();
+                let channel_id = ctx.channel_id();
+                let config = ctx.data().config.clone();
+
+                tokio::spawn(retry_book(
+                    http,
+                    channel_id,
+                    config,
+                    account,
+                    session_id.clone(),
+                    retry_duration,
+                    retry_interval,
+                ));
+                retrying.push(label);
+            }
+            // A rejection (e.g. no credits) won't be fixed by retrying, so
+            // report it with its message rather than scheduling a retry.
+            Ok(Err(e @ BookError::Rejected { .. })) => failed.push(format!("{label} ({e})")),
+            Ok(Err(BookError::Request(e))) => failed.push(format!("{label} ({e})")),
+            Err(e) => failed.push(format!("{label} ({e})")),
         }
     }
 
+    let mut lines: Vec<String> = Vec::new();
+    if !booked.is_empty() {
+        lines.push(format!("Booked `{session_id}` for: {}", booked.join(", ")));
+    }
+    if !retrying.is_empty() {
+        let retry_duration = ctx.data().config.retry_duration;
+        let retry_interval = ctx.data().config.retry_interval;
+        lines.push(format!(
+            "Slot not open yet for: {}. Retrying every {retry_interval}s for up to {retry_duration}s...",
+            retrying.join(", ")
+        ));
+    }
+    if !failed.is_empty() {
+        lines.push(format!("Booking failed for: {}", failed.join(", ")));
+    }
+
+    ctx.say(lines.join("\n")).await?;
     Ok(())
 }
 
-/// Book a session at a scheduled time
+/// Book a session at a scheduled time, optionally for other linked users
 #[poise::command(slash_command)]
 async fn prebook(
     ctx: Context<'_>,
@@ -357,6 +570,9 @@ async fn prebook(
     #[autocomplete = "autocomplete_session"]
     session_id: String,
     #[description = "When to book: HH:MM or YYYY-MM-DD HH:MM (local time)"] when: String,
+    #[description = "People to book for (mentions or labels); defaults to you"] users: Option<
+        String,
+    >,
 ) -> Result<(), Error> {
     ensure_owner!(ctx);
 
@@ -382,63 +598,113 @@ async fn prebook(
         }
     };
 
+    let targets = match resolve_targets(&ctx, users.as_deref()) {
+        Ok(t) => t,
+        Err(e) => {
+            ctx.say(e).await?;
+            return Ok(());
+        }
+    };
+
+    let labels: Vec<&str> = targets.iter().map(|a| a.label.as_str()).collect();
     ctx.say(format!(
-        "Scheduled: will book `{session_id}` at `{}`. I'll post here when done.",
+        "Scheduled: will book `{session_id}` for {} at `{}`. I'll post here when done.",
+        labels.join(", "),
         target.format("%Y-%m-%d %H:%M:%S")
     ))
     .await?;
 
-    let http = ctx.serenity_context().http.clone();
-    let channel_id = ctx.channel_id();
-    let config = ctx.data().config.clone();
-    let retry_duration = config.retry_duration;
-    let retry_interval = config.retry_interval;
+    let retry_duration = ctx.data().config.retry_duration;
+    let retry_interval = ctx.data().config.retry_interval;
 
-    tokio::spawn(async move {
-        tokio::time::sleep(wait).await;
-        retry_book(
-            http,
-            channel_id,
-            config,
-            session_id,
-            retry_duration,
-            retry_interval,
-        )
-        .await;
-    });
+    for account in targets {
+        let http = ctx.serenity_context().http.clone();
+        let channel_id = ctx.channel_id();
+        let config = ctx.data().config.clone();
+        let session_id = session_id.clone();
+
+        tokio::spawn(async move {
+            tokio::time::sleep(wait).await;
+            retry_book(
+                http,
+                channel_id,
+                config,
+                account,
+                session_id,
+                retry_duration,
+                retry_interval,
+            )
+            .await;
+        });
+    }
 
     Ok(())
 }
 
-/// Cancel a booking
+/// Cancel a booking, optionally for other linked users
 #[poise::command(slash_command)]
 async fn cancel(
     ctx: Context<'_>,
     #[description = "Booking to cancel"]
     #[autocomplete = "autocomplete_booking"]
     booking: String,
+    #[description = "People to cancel for (mentions or labels); defaults to you"] users: Option<
+        String,
+    >,
 ) -> Result<(), Error> {
     ensure_owner!(ctx);
 
     ctx.defer().await?;
 
-    // Value format: "booking_id:session_id"
-    let (booking_id, session_id) = booking
+    // Value format: "booking_id:session_id". Each target account may hold its
+    // own booking for this session, so we cancel by session id per account
+    // rather than reusing the caller's booking id.
+    let (_booking_id, session_id) = booking
         .split_once(':')
         .ok_or("Invalid booking value — use the autocomplete dropdown")?;
+    let session_id = session_id.to_string();
 
-    let b = Booking {
-        id: booking_id.to_string(),
-        session_id: session_id.to_string(),
-        session: vec![],
+    let targets = match resolve_targets(&ctx, users.as_deref()) {
+        Ok(t) => t,
+        Err(e) => {
+            ctx.say(e).await?;
+            return Ok(());
+        }
     };
 
-    let config = ctx.data().config.clone();
+    let mut cancelled: Vec<String> = Vec::new();
+    let mut not_found: Vec<String> = Vec::new();
+    let mut failed: Vec<String> = Vec::new();
 
-    with_client(config, move |c| c.cancel_booking(&b).map(|_| ())).await?;
+    for account in targets {
+        let config = ctx.data().config.clone();
+        let label = account.label.clone();
+        let sid = session_id.clone();
 
-    ctx.say(format!("Cancelled booking `{booking_id}`."))
-        .await?;
+        let result = with_account(config, account, move |c| c.cancel_session_booking(&sid)).await;
+
+        match result {
+            Ok(Some(_)) => cancelled.push(label),
+            Ok(None) => not_found.push(label),
+            Err(e) => failed.push(format!("{label} ({e})")),
+        }
+    }
+
+    let mut lines: Vec<String> = Vec::new();
+    if !cancelled.is_empty() {
+        lines.push(format!("Cancelled for: {}", cancelled.join(", ")));
+    }
+    if !not_found.is_empty() {
+        lines.push(format!("No booking found for: {}", not_found.join(", ")));
+    }
+    if !failed.is_empty() {
+        lines.push(format!("Cancellation failed for: {}", failed.join(", ")));
+    }
+    if lines.is_empty() {
+        lines.push("Nothing to cancel.".to_string());
+    }
+
+    ctx.say(lines.join("\n")).await?;
     Ok(())
 }
 
@@ -531,4 +797,35 @@ async fn main() {
         .expect("Failed to create Discord client");
 
     client.start().await.expect("Discord client error");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{is_everyone, parse_mention};
+
+    #[test]
+    fn parses_plain_and_nickname_mentions() {
+        assert_eq!(
+            parse_mention("<@123456789012345678>"),
+            Some(123_456_789_012_345_678)
+        );
+        assert_eq!(parse_mention("<@!123>"), Some(123));
+    }
+
+    #[test]
+    fn rejects_non_mentions() {
+        assert_eq!(parse_mention("tom"), None);
+        assert_eq!(parse_mention("<@abc>"), None);
+        assert_eq!(parse_mention("123"), None); // raw ids are handled separately
+    }
+
+    #[test]
+    fn recognises_everyone_tokens() {
+        assert!(is_everyone("@everyone"));
+        assert!(is_everyone("everyone"));
+        assert!(is_everyone("all"));
+        assert!(is_everyone("ALL"));
+        assert!(!is_everyone("tom"));
+        assert!(!is_everyone("@tom"));
+    }
 }

@@ -67,5 +67,6 @@ Found by tapping "Book" and "Cancel" in the app and observing the resulting requ
 ## Notes
 
 - `409 Conflict` on the booking endpoint means the slot is not yet open. This is expected for sessions that open at a specific time, which is why the bot retries on 409.
+- A `200 OK` on the booking endpoint does **not** guarantee a booking; the outcome is carried by the `status` field, not the HTTP code. A confirmed booking either returns a booking record with an `_id` (and no `status`) or returns `{"status": "success", ...}`. A soft rejection returns a non-`success` `status` with a `message`, e.g. `status: "noCredits"` ("L'adhérent a atteint la limite de ses réservations autorisées.") when the member has reached their reservation limit. The bot treats only an explicit non-`success` status as a failed booking (and does not retry it, since retrying will not help).
 - The backend is hosted on Heroku (`BASE_URL`). The iOS client identifies itself with the User-Agent `MonClubFakeAgent/311 CFNetwork/3860.500.83 Darwin/25.4.0`.
 - All IDs are MongoDB ObjectIds (24-character hex strings).

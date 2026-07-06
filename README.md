@@ -76,7 +76,24 @@ cp .env.example .env
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `DISCORD_TOKEN` | yes | Bot token from the [Discord Developer Portal](https://discord.com/developers/applications) |
-| `DISCORD_OWNER_ID` | no | Your Discord user ID. When set, only that user can trigger commands. |
+| `DISCORD_OWNER_ID` | no | Your Discord user ID. When set, only that user can trigger commands, and it links the owner to the primary `EMAIL`/`PASSWORD` account (unless overridden by a `users.json` entry — see below). |
+
+#### Multi-user (`users.json`)
+
+Extra bookable accounts, so booking/cancelling can act for several people at once, are configured in a `users.json` file in the working directory (next to `.env`) — **not** in the environment. The file is optional; without it, only the primary account is bookable. It contains credentials, so it is gitignored. Copy `users.json.example` to get started.
+
+It is a JSON array; each entry has its own `email`/`password`/`label` and the `discord_id` it maps to. `custom_id` is optional and defaults to `CUSTOM_ID`. An entry **takes precedence over `EMAIL`/`PASSWORD`** when it reuses the owner's `discord_id` (or the label `me`), letting you override the primary account without editing it.
+
+```json
+[
+  {"discord_id": 123, "label": "tom", "email": "tom@x.com", "password": "pwd"}
+]
+```
+
+Both interfaces use this file:
+
+- **CLI** — `book`, `prebook`, and `manage` (the cancel action) take a `--for <labels>` flag with comma-separated `label`s (e.g. `--for me,tom`). Without the flag, they prompt you to multi-select accounts **only when `users.json` has entries**; a single-account setup keeps its current, promptless behaviour. Each person is booked/cancelled under their own account, with a per-account outcome.
+- **Discord** — accounts are keyed by `discord_id`; `/book` and `/cancel` take a `users` argument (mentions, raw ids, or labels). See the command table below.
 
 ### Logging
 
@@ -100,22 +117,23 @@ cargo run --bin monclub-bot
 All session and booking pickers display four columns: name, date, time, and current/total participants.
 
 **Book**
-1. Fetches all upcoming club sessions
+1. Fetches upcoming club sessions (excluding ones you have already booked)
 2. Presents a selection prompt
-3. Asks for confirmation
-4. Submits the booking, retrying on 409 until the slot opens or the deadline is reached
+3. Chooses who to book for: the `--for` labels, or a multi-select prompt when `users.json` has entries (skipped for single-account setups)
+4. Asks for confirmation
+5. Submits the booking for each account, retrying on 409 until the slot opens or the deadline is reached
 
 **Schedule a booking (`prebook`)**
-1. Picks a session (interactive or by ID)
+1. Picks a session (interactive or by ID) and who to book for (`--for` or prompt)
 2. Asks for a target time (`HH:MM` or `YYYY-MM-DD HH:MM`)
-3. Sleeps until that time, then runs the same retry loop as Book
+3. Sleeps until that time, then runs the same retry loop as Book for each account
 
 **View / manage bookings**
 1. Fetches the user's upcoming bookings
 2. Presents a selection prompt
 3. Asks what to do with the selected booking:
    - **View info** — fetches and displays full session detail (location, capacity, coaches, participants list, etc.)
-   - **Cancel reservation** — asks for confirmation, then submits the cancellation
+   - **Cancel reservation** — chooses who to cancel for (`--for` or prompt), asks for confirmation, then cancels each account's own booking for that session
 
 **See previous sessions**
 1. Fetches the user's past bookings, sorted most recent first
@@ -146,9 +164,10 @@ Slash commands are registered globally on first startup (may take up to an hour 
 | Command | Description |
 |---------|-------------|
 | `/list [limit]` | List available sessions sorted by date, each with its ID. Optional `limit` restricts to the first N results. Long lists are split across multiple messages automatically. |
-| `/book <session>` | Book a session. The `session` argument has autocomplete — type to filter, or paste an ID from `/list`. If the slot returns 409 (not open yet), a background task retries and sends a follow-up message when confirmed or the deadline is hit. |
+| `/book <session> [users]` | Book a session. The `session` argument has autocomplete — type to filter, or paste an ID from `/list`. `users` books for other linked people at once — space-separated mentions (`@tom @nils`), raw Discord ids, or `users.json` labels, or `@everyone` (also `everyone`/`all`) for every configured account; omit it to book only for yourself. **Single target:** if the slot returns 409 (not open yet), a background task retries and posts a follow-up when confirmed or the deadline is hit. **Multiple targets:** the group is booked **atomically** — if any account fails (no credits, error, or slot not open), the bookings that already succeeded are cancelled (rolled back) so nobody is left half-booked. Use `/prebook` to schedule a group for when the slot opens. |
 | `/booking <booking>` | Show full detail for one of your bookings: session name, date/time, location, participant count, coaches, description, and numbered participants list. The `booking` argument has autocomplete. |
-| `/cancel <booking>` | Cancel an upcoming booking. The `booking` argument has autocomplete. |
+| `/cancel <booking> [users]` | Cancel an upcoming booking. The `booking` argument has autocomplete. `users` cancels for other linked people at once (same syntax as `/book`); each person's own booking for that session is looked up and cancelled. |
+| `/prebook <session> <when> [users]` | Schedule a booking to fire at a given time (`HH:MM` or `YYYY-MM-DD HH:MM`), optionally for other linked people. |
 | `/bookings` | List your upcoming bookings. |
 
 #### Running as a service (systemd example)

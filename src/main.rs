@@ -23,6 +23,10 @@ enum Command {
     Book {
         /// Session ID to book directly, skipping the interactive picker
         session_id: Option<String>,
+        /// Comma-separated labels from users.json to book for (e.g. "me,tom").
+        /// Without it, you are prompted when extra users are configured.
+        #[arg(long = "for", value_name = "LABELS")]
+        book_for: Option<String>,
     },
     /// Schedule a booking to run at a specific time
     Prebook {
@@ -30,9 +34,18 @@ enum Command {
         session_id: Option<String>,
         /// When to book: HH:MM or "YYYY-MM-DD HH:MM" (local time)
         when: Option<String>,
+        /// Comma-separated labels from users.json to book for (e.g. "me,tom").
+        #[arg(long = "for", value_name = "LABELS")]
+        book_for: Option<String>,
     },
     /// View and manage your upcoming bookings
-    Manage,
+    Manage {
+        /// Comma-separated labels from users.json to cancel for (e.g. "me,tom").
+        /// Applies to the cancel action; without it you are prompted when extra
+        /// users are configured.
+        #[arg(long = "for", value_name = "LABELS")]
+        book_for: Option<String>,
+    },
     /// List previous sessions and view their details
     Previous,
     /// Compare participants between two sessions
@@ -57,9 +70,16 @@ fn main() {
 
     let result = if let Some(cmd) = cli.command {
         client.authenticate().and_then(|()| match cmd {
-            Command::Book { session_id } => client.run_book(session_id),
-            Command::Prebook { session_id, when } => client.run_prebook(session_id, when),
-            Command::Manage => client.run_manage_bookings(),
+            Command::Book {
+                session_id,
+                book_for,
+            } => client.run_book(session_id, book_for.as_deref()),
+            Command::Prebook {
+                session_id,
+                when,
+                book_for,
+            } => client.run_prebook(session_id, when, book_for.as_deref()),
+            Command::Manage { book_for } => client.run_manage_bookings(book_for.as_deref()),
             Command::Previous => client.run_previous_sessions(),
             Command::Compare {
                 session_id_a,
