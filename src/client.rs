@@ -6,7 +6,7 @@ use std::time::{Duration, Instant};
 use anyhow::{Result, anyhow};
 use chrono::{DateTime, Local, NaiveDateTime, NaiveTime};
 use inquire::tabular::{ColumnAlignment, ColumnConfig};
-use inquire::{Confirm, Select, Text};
+use inquire::{Confirm, MultiSelect, Select, Text};
 use reqwest::blocking::Client;
 use reqwest::header::{ACCEPT, ACCEPT_LANGUAGE, CONTENT_TYPE, HeaderMap, HeaderValue, USER_AGENT};
 use serde::Deserialize;
@@ -14,7 +14,7 @@ use serde_json::{Value, json};
 use thiserror::Error;
 use tracing::{info, warn};
 
-use crate::config::Config;
+use crate::config::{Account, Config, same_identity};
 
 #[derive(Debug, Deserialize)]
 struct AuthResponse {
@@ -367,12 +367,54 @@ impl fmt::Display for BookingAction {
     }
 }
 
+/// Display wrapper so accounts can be listed in the interactive multi-select.
+struct AccountChoice(Account);
+
+impl fmt::Display for AccountChoice {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{} ({})", self.0.label, self.0.email)
+    }
+}
+
 #[derive(Debug, Error)]
 pub enum BookError {
     #[error("slot not open yet: {0}")]
     SlotNotOpen(String),
+    /// The endpoint answered 200 but declined the booking (e.g. the member has
+    /// reached their reservation limit — `status: "noCredits"`). Retrying will
+    /// not help, so this is distinct from `SlotNotOpen`.
+    #[error("booking rejected ({status}): {message}")]
+    Rejected { status: String, message: String },
     #[error(transparent)]
     Request(#[from] reqwest::Error),
+}
+
+/// Interpret a 200 response body from the booking endpoint.
+///
+/// The endpoint answers 200 for both outcomes, so success is decided by the
+/// `status` field, not the HTTP code:
+/// - a confirmed booking either omits `status` (returning a booking record with
+///   an `_id`) or sets `status: "success"`;
+/// - a soft rejection sets a non-`success` `status` and a `message` (e.g.
+///   `status: "noCredits"` when the member has hit their reservation limit).
+///
+/// Only an explicit non-`success` status is treated as a failure, so an
+/// unrecognised body without a `status` is accepted rather than dropped.
+fn interpret_book_response(body: Value) -> Result<Value, BookError> {
+    match body.get("status").and_then(Value::as_str) {
+        Some(status) if !status.eq_ignore_ascii_case("success") => {
+            let message = body
+                .get("message")
+                .and_then(Value::as_str)
+                .unwrap_or(status)
+                .to_string();
+            Err(BookError::Rejected {
+                status: status.to_string(),
+                message,
+            })
+        }
+        _ => Ok(body),
+    }
 }
 
 /// Parse a human-readable time string into a local `DateTime`.
@@ -441,6 +483,8 @@ fn left_columns(n: usize) -> Vec<ColumnConfig> {
 
 pub struct MonClubClient {
     config: Config,
+    /// The account this client authenticates as and acts on behalf of.
+    account: Account,
     http: Client,
     token: Option<String>,
     user_id: Option<String>,
@@ -449,6 +493,7 @@ pub struct MonClubClient {
 impl fmt::Debug for MonClubClient {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("MonClubClient")
+            .field("account", &self.account.label)
             .field("user_id", &self.user_id)
             .field("token", &self.token.as_ref().map(|_| "<redacted>"))
             .finish_non_exhaustive()
@@ -456,7 +501,15 @@ impl fmt::Debug for MonClubClient {
 }
 
 impl MonClubClient {
+    /// Build a client for the primary account (`EMAIL`/`PASSWORD`/`CUSTOM_ID`).
     pub fn new(config: Config) -> Self {
+        let account = config.primary_account();
+        Self::with_account(config, account)
+    }
+
+    /// Build a client that authenticates as `account`, sharing the rest of the
+    /// runtime config (base url, coordinates, retry settings).
+    pub fn with_account(config: Config, account: Account) -> Self {
         let mut headers = HeaderMap::new();
         headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
         headers.insert(ACCEPT, HeaderValue::from_static("application/json"));
@@ -471,10 +524,16 @@ impl MonClubClient {
 
         Self {
             config,
+            account,
             http,
             token: None,
             user_id: None,
         }
+    }
+
+    /// The label of the account this client acts as.
+    pub fn account_label(&self) -> &str {
+        &self.account.label
     }
 
     fn token(&self) -> &str {
@@ -494,7 +553,7 @@ impl MonClubClient {
         self.http
             .post(self.endpoint("/users/custom/authenticate/email/v2"))
             .query(&[("withCoachAuthentication", "true")])
-            .json(&json!({"email": self.config.email}))
+            .json(&json!({"email": self.account.email}))
             .send()?
             .error_for_status()?;
 
@@ -504,10 +563,10 @@ impl MonClubClient {
             .post(self.endpoint("/users/custom/authenticate/v2"))
             .json(&json!({
                 "credentials": {
-                    "email":    self.config.email,
-                    "password": self.config.password,
+                    "email":    self.account.email,
+                    "password": self.account.password,
                 },
-                "customId": self.config.custom_id,
+                "customId": self.account.custom_id,
                 "deviceInfo": {
                     "os":      "Android 14",
                     "model":   "Phone (2)",
@@ -542,7 +601,7 @@ impl MonClubClient {
             .post(self.endpoint("/nearfilters/favorite/myclub"))
             .header("authorization", self.token())
             .query(&[
-                ("customId", self.config.custom_id.as_str()),
+                ("customId", self.account.custom_id.as_str()),
                 ("userId", self.user_id()),
             ])
             .json(&json!({
@@ -594,9 +653,25 @@ impl MonClubClient {
         self.fetch_bookings("beforeToday")
     }
 
+    /// Sessions available to book: the full listing minus the ones the user has
+    /// already booked, so the booking picker never offers a duplicate.
+    fn bookable_sessions(&self) -> Result<Vec<Session>> {
+        let booked_ids: HashSet<String> = self
+            .list_bookings()?
+            .into_iter()
+            .map(|b| b.session_id)
+            .collect();
+
+        Ok(self
+            .list_sessions()?
+            .into_iter()
+            .filter(|s| !booked_ids.contains(&s.id))
+            .collect())
+    }
+
     fn find_target_session(&self) -> Result<Option<Session>> {
-        let sessions = self.list_sessions()?;
-        info!("{} sessions available", sessions.len());
+        let sessions = self.bookable_sessions()?;
+        info!("{} sessions available to book", sessions.len());
 
         if sessions.is_empty() {
             return Ok(None);
@@ -626,7 +701,7 @@ impl MonClubClient {
             .json(&json!({
                 "participant": participant,
                 "sessionId":   session_id,
-                "customId":    self.config.custom_id,
+                "customId":    self.account.custom_id,
             }))
             .send()
     }
@@ -647,7 +722,13 @@ impl MonClubClient {
             return Err(BookError::SlotNotOpen(resp.text().unwrap_or_default()));
         }
 
-        Ok(resp.error_for_status()?.json()?)
+        let body: Value = resp.error_for_status()?.json()?;
+
+        let outcome = interpret_book_response(body);
+        if let Err(BookError::Rejected { status, message }) = &outcome {
+            warn!("Booking not confirmed (status={status}): {message}");
+        }
+        outcome
     }
 
     pub fn get_session(&self, session_id: &str) -> Result<SessionDetail> {
@@ -685,9 +766,31 @@ impl MonClubClient {
             .json()?)
     }
 
+    /// Cancel this account's booking for `session_id`, looking up the booking
+    /// id from the account's own upcoming bookings.
+    ///
+    /// Returns the cancelled `bookingId`, or `None` when the account has no
+    /// booking for that session. Used to cancel on behalf of accounts whose
+    /// `bookingId` the caller does not already hold.
+    pub fn cancel_session_booking(&self, session_id: &str) -> Result<Option<String>> {
+        let Some(booking) = self
+            .list_bookings()?
+            .into_iter()
+            .find(|b| b.session_id == session_id)
+        else {
+            return Ok(None);
+        };
+
+        let booking_id = booking.id.clone();
+        self.cancel_booking(&booking)?;
+        Ok(Some(booking_id))
+    }
+
     /// Book `session`, retrying while the server answers `409` (slot not open
-    /// yet) until the configured deadline. Any other error is fatal and exits
-    /// the process. Shared by the direct-id, interactive and pre-book flows.
+    /// yet) until the configured deadline. Returns an error (rather than exiting
+    /// the process) on expiry or any other failure, so multi-account callers can
+    /// report one account's outcome and continue with the next. Shared by the
+    /// direct-id, interactive and pre-book flows.
     fn book_with_retry(&self, session: &Session) -> Result<()> {
         let deadline = Instant::now() + Duration::from_secs(self.config.retry_duration);
         let mut attempt = 0u32;
@@ -704,8 +807,7 @@ impl MonClubClient {
                 Err(BookError::SlotNotOpen(body)) => {
                     warn!("409 slot not open yet: {body}");
                     if Instant::now() >= deadline {
-                        eprintln!("Booking window expired.");
-                        std::process::exit(1);
+                        return Err(anyhow!("Booking window expired."));
                     }
                     println!(
                         "Slot not open yet. Retrying in {}s...",
@@ -713,22 +815,135 @@ impl MonClubClient {
                     );
                     thread::sleep(Duration::from_secs(self.config.retry_interval));
                 }
-                Err(e) => {
-                    eprintln!("Booking failed: {e}");
-                    std::process::exit(1);
+                Err(e) => return Err(anyhow!("Booking failed: {e}")),
+            }
+        }
+    }
+
+    /// Build and authenticate a client for `account`, sharing this client's
+    /// runtime config.
+    fn authed_client_for(&self, account: &Account) -> Result<MonClubClient> {
+        let mut client = MonClubClient::with_account(self.config.clone(), account.clone());
+        client.authenticate()?;
+        Ok(client)
+    }
+
+    /// Resolve which accounts a book/cancel action targets.
+    ///
+    /// Precedence: an explicit `--for` list (comma-separated labels) wins. With
+    /// no flag, prompt to multi-select only when extra users are configured in
+    /// `users.json`; when only the primary account exists, target it silently so
+    /// single-user setups keep their current behaviour.
+    fn resolve_targets(&self, for_arg: Option<&str>, prompt: &str) -> Result<Vec<Account>> {
+        let config = &self.config;
+
+        if let Some(spec) = for_arg {
+            let mut targets: Vec<Account> = Vec::new();
+            for label in spec.split(',').map(str::trim).filter(|s| !s.is_empty()) {
+                let account = config.account_for_label(label).ok_or_else(|| {
+                    anyhow!(
+                        "Unknown --for label '{label}' (not in users.json or the primary account)"
+                    )
+                })?;
+                // De-duplicate: two labels (e.g. "me" and a users.json entry for
+                // yourself) can point at the same MonClub identity.
+                if !targets.iter().any(|a| same_identity(a, &account)) {
+                    targets.push(account);
+                }
+            }
+            if targets.is_empty() {
+                return Err(anyhow!("--for was provided but empty"));
+            }
+            return Ok(targets);
+        }
+
+        // Distinct identities only, so the same person is never offered twice.
+        // One identity (the common case) needs no prompt.
+        let accounts = config.distinct_accounts();
+        if accounts.len() <= 1 {
+            return Ok(accounts);
+        }
+
+        // The primary "me" entry sorts first in `distinct_accounts`, so
+        // preselect it as the default booking target.
+        let choices: Vec<AccountChoice> = accounts.into_iter().map(AccountChoice).collect();
+
+        let selected = MultiSelect::new(prompt, choices)
+            .with_default(&[0])
+            .prompt()?;
+
+        if selected.is_empty() {
+            return Err(anyhow!("No account selected."));
+        }
+
+        Ok(selected.into_iter().map(|c| c.0).collect())
+    }
+
+    /// Book `session` for each target account, reusing this (already
+    /// authenticated) client when the target is its own account. Reports each
+    /// account's outcome without aborting the others.
+    fn book_for_all(&self, session: &Session, targets: &[Account]) {
+        let multi = targets.len() > 1;
+
+        for account in targets {
+            if multi {
+                println!("--- {} ---", account.label);
+            }
+
+            let result = if same_identity(account, &self.account) {
+                self.book_with_retry(session)
+            } else {
+                match self.authed_client_for(account) {
+                    Ok(client) => client.book_with_retry(session),
+                    Err(e) => Err(anyhow!("authentication failed: {e}")),
+                }
+            };
+
+            if let Err(e) = result {
+                if multi {
+                    eprintln!("{}: {e}", account.label);
+                } else {
+                    eprintln!("{e}");
                 }
             }
         }
     }
 
-    pub fn run_book(&self, session_id: Option<String>) -> Result<()> {
-        // When an ID is provided directly, skip the interactive picker entirely.
+    /// Cancel each target account's booking for `session_id`, reusing this
+    /// client for its own account. Reports each account's outcome.
+    fn cancel_for_all(&self, session_id: &str, targets: &[Account]) {
+        let multi = targets.len() > 1;
+
+        for account in targets {
+            if multi {
+                println!("--- {} ---", account.label);
+            }
+
+            let outcome = if same_identity(account, &self.account) {
+                self.cancel_session_booking(session_id)
+            } else {
+                match self.authed_client_for(account) {
+                    Ok(client) => client.cancel_session_booking(session_id),
+                    Err(e) => Err(anyhow!("authentication failed: {e}")),
+                }
+            };
+
+            match outcome {
+                Ok(Some(id)) => println!("Cancelled booking {id} for {}.", account.label),
+                Ok(None) => println!("No booking for {} on this session.", account.label),
+                Err(e) => eprintln!("{}: {e}", account.label),
+            }
+        }
+    }
+
+    /// Resolve the session to book: the provided id, or an interactive pick
+    /// (waiting for a matching session to appear, then confirming). Returns
+    /// `None` when the user declines the confirmation.
+    fn resolve_book_session(&self, session_id: Option<String>) -> Result<Option<Session>> {
         if let Some(id) = session_id {
-            return self.book_with_retry(&Session::from_id(id));
+            return Ok(Some(Session::from_id(id)));
         }
 
-        // Interactive: wait for a session to appear in the listing, confirm
-        // once, then let the booking retry loop handle the rest.
         let deadline = Instant::now() + Duration::from_secs(self.config.retry_duration);
         let session = loop {
             info!("Searching for target session...");
@@ -736,8 +951,7 @@ impl MonClubClient {
                 break session;
             }
             if Instant::now() >= deadline {
-                eprintln!("Session not found after retries. Giving up.");
-                std::process::exit(1);
+                return Err(anyhow!("Session not found after retries."));
             }
             println!(
                 "No matching session yet. Retrying in {}s...",
@@ -752,14 +966,33 @@ impl MonClubClient {
 
         if !confirmed {
             println!("Booking cancelled.");
-            return Ok(());
+            return Ok(None);
         }
 
-        self.book_with_retry(&session)
+        Ok(Some(session))
     }
 
-    pub fn run_prebook(&self, session_id: Option<String>, when: Option<String>) -> Result<()> {
-        // Step 1: pick a session (or use the provided ID directly)
+    pub fn run_book(&self, session_id: Option<String>, for_arg: Option<&str>) -> Result<()> {
+        let targets = self.resolve_targets(for_arg, "Book for whom?")?;
+
+        let Some(session) = self.resolve_book_session(session_id)? else {
+            return Ok(());
+        };
+
+        self.book_for_all(&session, &targets);
+        Ok(())
+    }
+
+    pub fn run_prebook(
+        &self,
+        session_id: Option<String>,
+        when: Option<String>,
+        for_arg: Option<&str>,
+    ) -> Result<()> {
+        // Step 1: choose who to book for.
+        let targets = self.resolve_targets(for_arg, "Book for whom?")?;
+
+        // Step 2: pick a session (or use the provided ID directly)
         let session = match session_id {
             Some(id) => Session::from_id(id),
             None => {
@@ -772,7 +1005,7 @@ impl MonClubClient {
             }
         };
 
-        // Step 2: resolve target time
+        // Step 3: resolve target time
         let when_str = match when {
             Some(w) => w,
             None => Text::new("When to book? (HH:MM or YYYY-MM-DD HH:MM, local time):").prompt()?,
@@ -796,11 +1029,12 @@ impl MonClubClient {
         thread::sleep(wait);
         println!("Target time reached. Booking now...");
 
-        // Step 3: retry the booking until the slot opens
-        self.book_with_retry(&session)
+        // Step 4: book for every target once the slot opens
+        self.book_for_all(&session, &targets);
+        Ok(())
     }
 
-    pub fn run_manage_bookings(&self) -> Result<()> {
+    pub fn run_manage_bookings(&self, for_arg: Option<&str>) -> Result<()> {
         let bookings = self.list_bookings()?;
 
         if bookings.is_empty() {
@@ -826,17 +1060,24 @@ impl MonClubClient {
                 }
             }
             BookingAction::Cancel => {
-                let confirmed = Confirm::new(&format!("Cancel '{booking}'?"))
-                    .with_default(false)
-                    .prompt()?;
+                // Choose who to cancel for (prompts only when extra users exist).
+                let targets = self.resolve_targets(for_arg, "Cancel for whom?")?;
+
+                let prompt = if targets.len() > 1 {
+                    let labels: Vec<&str> = targets.iter().map(|a| a.label.as_str()).collect();
+                    format!("Cancel '{booking}' for {}?", labels.join(", "))
+                } else {
+                    format!("Cancel '{booking}'?")
+                };
+
+                let confirmed = Confirm::new(&prompt).with_default(false).prompt()?;
 
                 if !confirmed {
                     println!("Cancellation aborted.");
                     return Ok(());
                 }
 
-                self.cancel_booking(&booking)?;
-                println!("Cancellation confirmed!");
+                self.cancel_for_all(&booking.session_id, &targets);
             }
         }
 
@@ -983,11 +1224,132 @@ impl MonClubClient {
         .prompt()?;
 
         match action {
-            Action::Book => self.run_book(None),
-            Action::PreBook => self.run_prebook(None, None),
-            Action::ManageBookings => self.run_manage_bookings(),
+            Action::Book => self.run_book(None, None),
+            Action::PreBook => self.run_prebook(None, None, None),
+            Action::ManageBookings => self.run_manage_bookings(None),
             Action::PreviousSessions => self.run_previous_sessions(),
             Action::Compare => self.run_compare(None, None),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn accepts_booking_record_with_id() {
+        // The captured success shape: a booking record with `_id`, no `status`.
+        let body = json!({"_id": "deadbeef", "isPresent": "yes"});
+        assert!(interpret_book_response(body).is_ok());
+    }
+
+    #[test]
+    fn accepts_status_success() {
+        // The observed success shape from the live API: `status: "success"`,
+        // with no `_id`. This must not be treated as a failure.
+        let body = json!({"status": "success", "message": "success"});
+        assert!(interpret_book_response(body).is_ok());
+    }
+
+    #[test]
+    fn accepts_body_without_status() {
+        // No explicit failure status -> accepted rather than dropped.
+        let body = json!({"foo": "bar"});
+        assert!(interpret_book_response(body).is_ok());
+    }
+
+    #[test]
+    fn rejects_no_credits_despite_200() {
+        // 200 OK but the member has hit their reservation limit.
+        let body = json!({
+            "status": "noCredits",
+            "message": "L\u{2019}adh\u{e9}rent a atteint la limite de ses r\u{e9}servations autoris\u{e9}es."
+        });
+        match interpret_book_response(body) {
+            Err(BookError::Rejected { status, message }) => {
+                assert_eq!(status, "noCredits");
+                assert!(message.contains("limite"));
+            }
+            other => panic!("expected Rejected, got {other:?}"),
+        }
+    }
+
+    fn account(label: &str, email: &str) -> Account {
+        Account {
+            label: label.to_string(),
+            email: email.to_string(),
+            password: "p".to_string(),
+            custom_id: "club1".to_string(),
+            discord_id: None,
+        }
+    }
+
+    fn client_with(users: Vec<Account>) -> MonClubClient {
+        let config = Config {
+            email: "owner@x.com".to_string(),
+            password: "p".to_string(),
+            custom_id: "club1".to_string(),
+            base_url: "https://example.invalid".to_string(),
+            latitude: None,
+            longitude: None,
+            retry_duration: 1,
+            retry_interval: 1,
+            discord_token: None,
+            discord_owner_id: Some(1),
+            users,
+        };
+        MonClubClient::new(config)
+    }
+
+    #[test]
+    fn resolve_targets_for_flag_resolves_labels() {
+        let client = client_with(vec![account("tom", "tom@x.com")]);
+        let targets = client.resolve_targets(Some("tom"), "x").unwrap();
+        assert_eq!(targets.len(), 1);
+        assert_eq!(targets[0].label, "tom");
+    }
+
+    #[test]
+    fn resolve_targets_for_flag_multiple_and_dedup() {
+        let client = client_with(vec![account("tom", "tom@x.com")]);
+        // "me" is the primary label; the repeated "tom" is de-duplicated.
+        let targets = client.resolve_targets(Some("me, tom, tom"), "x").unwrap();
+        assert_eq!(targets.len(), 2);
+        assert_eq!(targets[0].label, "me");
+        assert_eq!(targets[1].label, "tom");
+    }
+
+    #[test]
+    fn resolve_targets_for_flag_unknown_label_errors() {
+        let client = client_with(vec![account("tom", "tom@x.com")]);
+        assert!(client.resolve_targets(Some("ghost"), "x").is_err());
+    }
+
+    #[test]
+    fn resolve_targets_single_account_skips_prompt() {
+        // No extra users and no flag -> primary account, without prompting.
+        let client = client_with(vec![]);
+        let targets = client.resolve_targets(None, "x").unwrap();
+        assert_eq!(targets.len(), 1);
+        assert_eq!(targets[0].label, "me");
+    }
+
+    #[test]
+    fn resolve_targets_duplicate_self_entry_skips_prompt() {
+        // A users.json entry that is really the primary account (same email)
+        // collapses to one identity -> no prompt, books as "me".
+        let client = client_with(vec![account("tom", "owner@x.com")]);
+        let targets = client.resolve_targets(None, "x").unwrap();
+        assert_eq!(targets.len(), 1);
+        assert_eq!(targets[0].label, "me");
+    }
+
+    #[test]
+    fn resolve_targets_for_flag_collapses_same_identity() {
+        // "me" and a users.json alias for the same email -> a single target.
+        let client = client_with(vec![account("tom", "owner@x.com")]);
+        let targets = client.resolve_targets(Some("me,tom"), "x").unwrap();
+        assert_eq!(targets.len(), 1);
     }
 }

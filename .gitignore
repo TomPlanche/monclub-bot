@@ -1,1 +1,4 @@
 /target
+
+# Multi-user config: contains MonClub credentials, keep it out of git.
+/users.json
