@@ -397,26 +397,55 @@ async fn booking(
     send_chunked(ctx, &lines).await
 }
 
-/// List your upcoming bookings
+/// List upcoming bookings, optionally for other linked users
 #[poise::command(slash_command)]
-async fn bookings(ctx: Context<'_>) -> Result<(), Error> {
+async fn bookings(
+    ctx: Context<'_>,
+    #[description = "People to list for (mentions, labels, or @everyone); defaults to you"]
+    users: Option<String>,
+) -> Result<(), Error> {
     ensure_owner!(ctx);
 
     ctx.defer().await?;
 
-    let config = ctx.data().config.clone();
+    let targets = match resolve_targets(&ctx, users.as_deref()) {
+        Ok(t) => t,
+        Err(e) => {
+            ctx.say(e).await?;
+            return Ok(());
+        }
+    };
 
-    let bookings = with_client(config, MonClubClient::list_bookings).await?;
+    // With a single target, list the bookings directly; with several, group
+    // each account's bookings under a header so it's clear who has what.
+    let multi = targets.len() > 1;
+    let mut lines: Vec<String> = Vec::new();
 
-    if bookings.is_empty() {
-        ctx.say("No upcoming bookings.").await?;
-        return Ok(());
+    for account in targets {
+        let config = ctx.data().config.clone();
+        let label = account.label.clone();
+
+        let bookings = with_account(config, account, MonClubClient::list_bookings).await;
+
+        if multi {
+            lines.push(format!("**{label}**"));
+        }
+
+        match bookings {
+            Ok(bookings) if bookings.is_empty() => {
+                lines.push(if multi {
+                    "- No upcoming bookings.".to_string()
+                } else {
+                    "No upcoming bookings.".to_string()
+                });
+            }
+            Ok(bookings) => {
+                lines.extend(bookings.iter().map(|b| format!("- {}", format_booking(b))));
+            }
+            Err(e) => lines.push(format!("- Failed to list bookings: {e}")),
+        }
     }
 
-    let lines: Vec<String> = bookings
-        .iter()
-        .map(|b| format!("- {}", format_booking(b)))
-        .collect();
     send_chunked(ctx, &lines).await
 }
 
