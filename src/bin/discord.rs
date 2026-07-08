@@ -195,6 +195,67 @@ async fn retry_book(
     }
 }
 
+/// Poll for newly available sessions and announce them in `channel_id`.
+///
+/// Runs forever on its own task. The first poll seeds the set of known session
+/// ids without posting, so the channel isn't flooded with the entire current
+/// listing at startup; only sessions that appear in a later poll are announced.
+async fn watch_new_sessions(
+    http: Arc<serenity::Http>,
+    channel_id: serenity::ChannelId,
+    config: Config,
+    poll_interval: u64,
+) {
+    use std::collections::HashSet;
+
+    let interval = Duration::from_secs(poll_interval.max(1));
+    let mut known: Option<HashSet<String>> = None;
+
+    if let Err(e) = channel_id.say(&http, "Looking for new sessions...").await {
+        tracing::warn!("Failed to post watcher start message: {e}");
+    }
+
+    loop {
+        let sessions = with_client(config.clone(), MonClubClient::list_sessions).await;
+
+        match sessions {
+            Ok(sessions) => {
+                let current: HashSet<String> = sessions.iter().map(|s| s.id.clone()).collect();
+
+                match &known {
+                    // First successful poll: remember what's already there and
+                    // stay quiet.
+                    None => {
+                        info!(count = current.len(), "Seeded new-session watcher");
+                        known = Some(current);
+                    }
+                    Some(previous) => {
+                        let mut fresh: Vec<&Session> =
+                            sessions.iter().filter(|s| !previous.contains(&s.id)).collect();
+                        fresh.sort_by(|a, b| a.date.cmp(&b.date));
+
+                        for s in fresh {
+                            let msg = format!(
+                                "New session available: {} (`{}`)",
+                                format_session(s),
+                                s.id
+                            );
+                            if let Err(e) = channel_id.say(&http, msg).await {
+                                tracing::warn!("Failed to post new session: {e}");
+                            }
+                        }
+
+                        known = Some(current);
+                    }
+                }
+            }
+            Err(e) => tracing::warn!("New-session watcher poll failed: {e}"),
+        }
+
+        tokio::time::sleep(interval).await;
+    }
+}
+
 fn format_session(s: &Session) -> String {
     let date = s.date.as_deref().and_then(|d| d.get(..10)).unwrap_or("?");
     format!(
@@ -786,6 +847,25 @@ async fn main() {
             Box::pin(async move {
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
                 info!("Discord bot ready. Commands registered globally.");
+
+                // Spawn the new-session watcher when a target channel is set.
+                if let Some(channel_id) = config.new_sessions_channel_id {
+                    let http = ctx.http.clone();
+                    let channel = serenity::ChannelId::new(channel_id);
+                    let poll_interval = config.new_sessions_poll_interval;
+                    let watcher_config = config.clone();
+                    info!(
+                        channel_id,
+                        poll_interval, "Starting new-session watcher"
+                    );
+                    tokio::spawn(watch_new_sessions(
+                        http,
+                        channel,
+                        watcher_config,
+                        poll_interval,
+                    ));
+                }
+
                 Ok(Data { config, owner_id })
             })
         })

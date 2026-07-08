@@ -112,6 +112,12 @@ pub struct Config {
     pub retry_interval: u64,
     pub discord_token: Option<String>,
     pub discord_owner_id: Option<u64>,
+    /// Discord channel the new-session watcher posts to. When unset, the watcher
+    /// is disabled.
+    pub new_sessions_channel_id: Option<u64>,
+    /// How often (seconds) the new-session watcher polls for newly available
+    /// sessions.
+    pub new_sessions_poll_interval: u64,
     /// Extra bookable accounts loaded from `users.json`, keyed to Discord users.
     /// These take precedence over the primary account when they share a Discord
     /// id or label (see [`Config::accounts`]).
@@ -157,6 +163,8 @@ impl Config {
                 .ok()
                 .filter(|s| !s.is_empty()),
             discord_owner_id: env_opt("DISCORD_OWNER_ID"),
+            new_sessions_channel_id: env_opt("NEW_SESSIONS_CHANNEL_ID"),
+            new_sessions_poll_interval: env_parse("NEW_SESSIONS_POLL_INTERVAL", 60),
             users,
         }
     }
@@ -236,6 +244,8 @@ mod tests {
             retry_interval: 5,
             discord_token: None,
             discord_owner_id: Some(1),
+            new_sessions_channel_id: None,
+            new_sessions_poll_interval: 60,
             users,
         }
     }

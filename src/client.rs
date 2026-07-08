@@ -1297,6 +1297,8 @@ mod tests {
             retry_interval: 1,
             discord_token: None,
             discord_owner_id: Some(1),
+            new_sessions_channel_id: None,
+            new_sessions_poll_interval: 60,
             users,
         };
         MonClubClient::new(config)
