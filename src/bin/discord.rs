@@ -440,7 +440,11 @@ async fn bookings(
                 });
             }
             Ok(bookings) => {
-                lines.extend(bookings.iter().map(|b| format!("- {}", format_booking(b))));
+                lines.extend(
+                    bookings
+                        .iter()
+                        .map(|b| format!("- {} (`{}`)", format_booking(b), b.id)),
+                );
             }
             Err(e) => lines.push(format!("- Failed to list bookings: {e}")),
         }
