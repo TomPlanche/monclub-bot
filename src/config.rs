@@ -118,6 +118,9 @@ pub struct Config {
     /// How often (seconds) the new-session watcher polls for newly available
     /// sessions.
     pub new_sessions_poll_interval: u64,
+    /// How long (hours) before a session's start the booking window opens. Used
+    /// by `/notify` to work out when a not-yet-bookable session becomes bookable.
+    pub booking_window_hours: i64,
     /// Extra bookable accounts loaded from `users.json`, keyed to Discord users.
     /// These take precedence over the primary account when they share a Discord
     /// id or label (see [`Config::accounts`]).
@@ -165,6 +168,7 @@ impl Config {
             discord_owner_id: env_opt("DISCORD_OWNER_ID"),
             new_sessions_channel_id: env_opt("NEW_SESSIONS_CHANNEL_ID"),
             new_sessions_poll_interval: env_parse("NEW_SESSIONS_POLL_INTERVAL", 60),
+            booking_window_hours: env_parse("BOOKING_WINDOW_HOURS", 144),
             users,
         }
     }
@@ -246,6 +250,7 @@ mod tests {
             discord_owner_id: Some(1),
             new_sessions_channel_id: None,
             new_sessions_poll_interval: 60,
+            booking_window_hours: 144,
             users,
         }
     }

@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use chrono::Local;
+use chrono::{DateTime, Local};
 use monclub_bot::client::{
     BookError, Booking, MonClubClient, Session, SessionComparison, SessionDetail, parse_when,
 };
@@ -253,6 +253,39 @@ async fn watch_new_sessions(
         }
 
         tokio::time::sleep(interval).await;
+    }
+}
+
+/// Parse a session `date` field into a local `DateTime`.
+///
+/// The API returns the session's start instant as an RFC 3339 UTC timestamp
+/// (e.g. `2026-03-22T08:00:00.000Z`), so the local start time is derived from
+/// that instant rather than the separate French `time` string (`09H00`).
+fn parse_session_start(date: &str) -> Option<DateTime<Local>> {
+    DateTime::parse_from_rfc3339(date)
+        .ok()
+        .map(|dt| dt.with_timezone(&Local))
+}
+
+/// Wait until `wait` elapses, then ping `user_id` in `channel_id` to say the
+/// session is now bookable. Spawned by `/notify`; if the bot restarts before the
+/// window opens, the pending alert is lost (same limitation as `/prebook`).
+async fn alert_when_bookable(
+    http: Arc<serenity::Http>,
+    channel_id: serenity::ChannelId,
+    user_id: serenity::UserId,
+    session_id: String,
+    label: String,
+    wait: Duration,
+) {
+    tokio::time::sleep(wait).await;
+
+    let msg = format!(
+        "<@{user_id}> `{label}` (`{session_id}`) is now bookable \u{2014} the booking window just \
+         opened. Book it in the app.",
+    );
+    if let Err(e) = channel_id.say(&http, msg).await {
+        tracing::warn!("Failed to post booking-window alert: {e}");
     }
 }
 
@@ -840,6 +873,64 @@ async fn compare(
     send_chunked(ctx, &lines).await
 }
 
+/// Get pinged here when a session becomes bookable (crosses its booking window)
+#[poise::command(slash_command)]
+async fn notify(
+    ctx: Context<'_>,
+    #[description = "Session to watch"]
+    #[autocomplete = "autocomplete_session"]
+    session_id: String,
+) -> Result<(), Error> {
+    ensure_owner!(ctx);
+
+    ctx.defer().await?;
+
+    let config = ctx.data().config.clone();
+    let sid = session_id.clone();
+    let detail = with_client(config, move |c| c.get_session(&sid)).await?;
+
+    let label = detail.name.clone().unwrap_or_else(|| session_id.clone());
+
+    let Some(start) = detail.date.as_deref().and_then(parse_session_start) else {
+        ctx.say(format!(
+            "Couldn't read the start time for `{label}`, so I can't work out its booking window."
+        ))
+        .await?;
+        return Ok(());
+    };
+
+    let window = chrono::Duration::hours(ctx.data().config.booking_window_hours);
+    let open_at = start - window;
+    let now = Local::now();
+
+    // Already inside the window (or the session is in the past): nothing to wait for.
+    let Ok(wait) = (open_at - now).to_std() else {
+        ctx.say(format!(
+            "`{label}` is already bookable \u{2014} you can book it in the app now."
+        ))
+        .await?;
+        return Ok(());
+    };
+
+    ctx.say(format!(
+        "Watching `{label}`. I'll ping you here when it opens for booking on `{}` ({}h before the session starts).",
+        open_at.format("%Y-%m-%d %H:%M"),
+        ctx.data().config.booking_window_hours,
+    ))
+    .await?;
+
+    tokio::spawn(alert_when_bookable(
+        ctx.serenity_context().http.clone(),
+        ctx.channel_id(),
+        ctx.author().id,
+        session_id,
+        label,
+        wait,
+    ));
+
+    Ok(())
+}
+
 // ---------------------------------------------------------------------------
 // Entry point
 // ---------------------------------------------------------------------------
@@ -873,6 +964,7 @@ async fn main() {
                 cancel(),
                 booking(),
                 compare(),
+                notify(),
             ],
             ..Default::default()
         })
@@ -914,7 +1006,7 @@ async fn main() {
 
 #[cfg(test)]
 mod tests {
-    use super::{is_everyone, parse_mention};
+    use super::{is_everyone, parse_mention, parse_session_start};
 
     #[test]
     fn parses_plain_and_nickname_mentions() {
@@ -940,5 +1032,25 @@ mod tests {
         assert!(is_everyone("ALL"));
         assert!(!is_everyone("tom"));
         assert!(!is_everyone("@tom"));
+    }
+
+    #[test]
+    fn computes_booking_window_open_time() {
+        use chrono::{Duration, SecondsFormat, Utc};
+
+        // The `date` field is the session's start instant in UTC.
+        let start = parse_session_start("2026-03-22T08:00:00.000Z").expect("parses");
+        // 144h before the start is 6 days earlier, at the same instant.
+        let open = (start - Duration::hours(144)).with_timezone(&Utc);
+        assert_eq!(
+            open.to_rfc3339_opts(SecondsFormat::Secs, true),
+            "2026-03-16T08:00:00Z"
+        );
+    }
+
+    #[test]
+    fn rejects_unparseable_session_date() {
+        assert!(parse_session_start("not-a-date").is_none());
+        assert!(parse_session_start("2026-03-22").is_none());
     }
 }

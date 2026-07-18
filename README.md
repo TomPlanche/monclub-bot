@@ -77,6 +77,7 @@ cp .env.example .env
 |----------|----------|-------------|
 | `DISCORD_TOKEN` | yes | Bot token from the [Discord Developer Portal](https://discord.com/developers/applications) |
 | `DISCORD_OWNER_ID` | no | Your Discord user ID. When set, only that user can trigger commands, and it links the owner to the primary `EMAIL`/`PASSWORD` account (unless overridden by a `users.json` entry — see below). |
+| `BOOKING_WINDOW_HOURS` | no | Hours before a session's start that its booking window opens. Used by `/notify` to work out when a not-yet-bookable session becomes bookable. Defaults to `144` (6 days). |
 
 #### Multi-user (`users.json`)
 
@@ -169,6 +170,7 @@ Slash commands are registered globally on first startup (may take up to an hour 
 | `/cancel <booking> [users]` | Cancel an upcoming booking. The `booking` argument has autocomplete. `users` cancels for other linked people at once (same syntax as `/book`); each person's own booking for that session is looked up and cancelled. |
 | `/prebook <session> <when> [users]` | Schedule a booking to fire at a given time (`HH:MM` or `YYYY-MM-DD HH:MM`), optionally for other linked people. |
 | `/bookings` | List your upcoming bookings. |
+| `/notify <session>` | Get pinged in the channel when a session that isn't bookable yet crosses its booking window (`session start − BOOKING_WINDOW_HOURS`, default 144h). The `session` argument has autocomplete. Alert only — it does not book; you book it yourself in the app. If the session is already bookable it says so immediately. Like `/prebook`, the pending alert is in-memory and lost if the bot restarts. |
 
 #### Running as a service (systemd example)
 

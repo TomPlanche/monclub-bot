@@ -1299,6 +1299,7 @@ mod tests {
             discord_owner_id: Some(1),
             new_sessions_channel_id: None,
             new_sessions_poll_interval: 60,
+            booking_window_hours: 144,
             users,
         };
         MonClubClient::new(config)
