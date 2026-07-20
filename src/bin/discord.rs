@@ -230,9 +230,9 @@ async fn watch_new_sessions(
                         known = Some(current);
                     }
                     Some(previous) => {
-                        let mut fresh: Vec<&Session> =
-                            sessions.iter().filter(|s| !previous.contains(&s.id)).collect();
-                        fresh.sort_by(|a, b| a.date.cmp(&b.date));
+                        // `list_sessions` already returns sessions in
+                        // chronological order, and `filter` preserves it.
+                        let fresh = sessions.iter().filter(|s| !previous.contains(&s.id));
 
                         for s in fresh {
                             let msg = format!(
@@ -979,10 +979,7 @@ async fn main() {
                     let channel = serenity::ChannelId::new(channel_id);
                     let poll_interval = config.new_sessions_poll_interval;
                     let watcher_config = config.clone();
-                    info!(
-                        channel_id,
-                        poll_interval, "Starting new-session watcher"
-                    );
+                    info!(channel_id, poll_interval, "Starting new-session watcher");
                     tokio::spawn(watch_new_sessions(
                         http,
                         channel,

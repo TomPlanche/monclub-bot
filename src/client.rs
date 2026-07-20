@@ -60,8 +60,10 @@ impl fmt::Display for Session {
             .and_then(|d| d.get(..10))
             .unwrap_or("?");
         let participants = match self.total_capacity {
-            Some(cap) => format!("{}/{cap}", self.yes_participants.len()),
-            None if !self.yes_participants.is_empty() => self.yes_participants.len().to_string(),
+            Some(cap) => format!("{}/{cap} booked", self.yes_participants.len()),
+            None if !self.yes_participants.is_empty() => {
+                format!("{} booked", self.yes_participants.len())
+            }
             None => "?".to_string(),
         };
         write!(
@@ -76,6 +78,15 @@ impl fmt::Display for Session {
 }
 
 impl Session {
+    /// Chronological ordering key. `date` is an ISO timestamp, `time` a zero-padded `19H30`, so both sort correctly as plain strings. Entries missing a date sort last rather than silently jumping to the top.
+    fn sort_key(&self) -> (bool, &str, &str) {
+        (
+            self.date.is_none(),
+            self.date.as_deref().unwrap_or(""),
+            self.time.as_deref().unwrap_or(""),
+        )
+    }
+
     /// A minimal `Session` carrying only its id, for booking by id without
     /// having fetched the full listing.
     pub fn from_id(id: String) -> Self {
@@ -108,6 +119,15 @@ impl BookingSession {
     /// Number of active (non-deleted) participants for this booking's session.
     fn participant_count(&self) -> usize {
         self.attendees.iter().filter(|a| !a.deleted).count()
+    }
+
+    /// See [`Session::sort_key`].
+    fn sort_key(&self) -> (bool, &str, &str) {
+        (
+            self.date.is_none(),
+            self.date.as_deref().unwrap_or(""),
+            self.time.as_deref().unwrap_or(""),
+        )
     }
 }
 
@@ -260,8 +280,8 @@ impl fmt::Display for Booking {
         let participants = s.map_or_else(
             || "?".to_string(),
             |s| match s.total_capacity {
-                Some(cap) => format!("{}/{cap}", s.participant_count()),
-                None => s.participant_count().to_string(),
+                Some(cap) => format!("{}/{cap} booked", s.participant_count()),
+                None => format!("{} booked", s.participant_count()),
             },
         );
         write!(
@@ -625,7 +645,9 @@ impl MonClubClient {
             .error_for_status()?
             .json()?;
 
-        deserialize_array(raw)
+        let mut sessions: Vec<Session> = deserialize_array(raw)?;
+        sessions.sort_by(|a, b| a.sort_key().cmp(&b.sort_key()));
+        Ok(sessions)
     }
 
     /// Fetch the user's bookings for a given temporality.
@@ -642,7 +664,15 @@ impl MonClubClient {
             .error_for_status()?
             .json()?;
 
-        deserialize_array(raw)
+        let mut bookings: Vec<Booking> = deserialize_array(raw)?;
+        // The API returns bookings in no particular order; the pickers and the Discord listings all read better chronologically.
+        bookings.sort_by(|a, b| {
+            a.session
+                .first()
+                .map(BookingSession::sort_key)
+                .cmp(&b.session.first().map(BookingSession::sort_key))
+        });
+        Ok(bookings)
     }
 
     pub fn list_bookings(&self) -> Result<Vec<Booking>> {
@@ -1086,19 +1116,8 @@ impl MonClubClient {
 
     pub fn run_previous_sessions(&self) -> Result<()> {
         let mut bookings = self.list_previous_bookings()?;
-        bookings.sort_by(|a, b| {
-            let date_a = a
-                .session
-                .first()
-                .and_then(|s| s.date.as_deref())
-                .unwrap_or("");
-            let date_b = b
-                .session
-                .first()
-                .and_then(|s| s.date.as_deref())
-                .unwrap_or("");
-            date_b.cmp(date_a)
-        });
+        // Past sessions read best most-recent-first, the reverse of the chronological order `list_previous_bookings` hands back.
+        bookings.reverse();
 
         if bookings.is_empty() {
             println!("No previous sessions found.");
@@ -1354,5 +1373,109 @@ mod tests {
         let client = client_with(vec![account("tom", "owner@x.com")]);
         let targets = client.resolve_targets(Some("me,tom"), "x").unwrap();
         assert_eq!(targets.len(), 1);
+    }
+
+    fn session(name: &str, date: Option<&str>, time: Option<&str>) -> Session {
+        Session {
+            id: format!("id-{name}"),
+            name: Some(name.to_string()),
+            date: date.map(str::to_string),
+            time: time.map(str::to_string),
+            yes_participants: vec![],
+            total_capacity: None,
+        }
+    }
+
+    /// The ordering `list_sessions` and `fetch_bookings` apply to their results.
+    fn sorted_names(mut sessions: Vec<Session>) -> Vec<String> {
+        sessions.sort_by(|a, b| a.sort_key().cmp(&b.sort_key()));
+        sessions
+            .into_iter()
+            .map(|s| s.name.unwrap_or_default())
+            .collect()
+    }
+
+    #[test]
+    fn sorts_sessions_chronologically() {
+        // The API returns no particular order; the picker must show the soonest session first.
+        let names = sorted_names(vec![
+            session("wed", Some("2026-07-22T00:00:00.000Z"), Some("19H30")),
+            session("mon", Some("2026-07-20T00:00:00.000Z"), Some("20H00")),
+            session("thu", Some("2026-07-23T00:00:00.000Z"), Some("19H30")),
+        ]);
+        assert_eq!(names, ["mon", "wed", "thu"]);
+    }
+
+    #[test]
+    fn breaks_same_day_ties_by_time() {
+        // Two sessions on one day sort by start time, not by arrival order.
+        let names = sorted_names(vec![
+            session("evening", Some("2026-07-20T00:00:00.000Z"), Some("20H00")),
+            session("morning", Some("2026-07-20T00:00:00.000Z"), Some("08H00")),
+        ]);
+        assert_eq!(names, ["morning", "evening"]);
+    }
+
+    #[test]
+    fn sorts_dateless_sessions_last() {
+        // A missing date must not sort as an empty string and jump to the top.
+        let names = sorted_names(vec![
+            session("undated", None, None),
+            session("dated", Some("2026-07-20T00:00:00.000Z"), Some("20H00")),
+        ]);
+        assert_eq!(names, ["dated", "undated"]);
+    }
+
+    #[test]
+    fn session_display_labels_count_as_booked() {
+        // "17/24" alone reads equally well as remaining slots; the suffix pins it to slots taken.
+        let mut s = session("beach", Some("2026-07-22T00:00:00.000Z"), Some("19H30"));
+        s.total_capacity = Some(24);
+        s.yes_participants = (0..17).map(|i| i.to_string()).collect();
+        assert_eq!(s.to_string(), "beach | 2026-07-22 | 19H30 | 17/24 booked");
+    }
+
+    #[test]
+    fn session_display_keeps_overbooked_count() {
+        // The live API does return counts above capacity; render them as-is rather than clamping or flipping to a negative remainder.
+        let mut s = session("loisir", Some("2026-07-20T00:00:00.000Z"), Some("20H00"));
+        s.total_capacity = Some(36);
+        s.yes_participants = (0..37).map(|i| i.to_string()).collect();
+        assert!(s.to_string().ends_with("37/36 booked"));
+    }
+
+    #[test]
+    fn booking_display_ignores_deleted_attendees() {
+        // `/bookings/user` returns cancelled attendees with `deleted: true`; they must not inflate the booked count.
+        let attendee = |deleted: bool| SessionAttendee {
+            full_name: Some("someone".to_string()),
+            deleted,
+        };
+        let booking = Booking {
+            id: "b1".to_string(),
+            session_id: "s1".to_string(),
+            session: vec![BookingSession {
+                name: Some("beach".to_string()),
+                date: Some("2026-07-23T00:00:00.000Z".to_string()),
+                time: Some("19H30".to_string()),
+                attendees: vec![attendee(false), attendee(true), attendee(false)],
+                total_capacity: Some(24),
+            }],
+        };
+        assert_eq!(
+            booking.to_string(),
+            "beach | 2026-07-23 | 19H30 | 2/24 booked"
+        );
+    }
+
+    #[test]
+    fn booking_without_session_still_renders() {
+        // A booking whose `session` array came back empty falls back to the session id rather than panicking on `first()`.
+        let booking = Booking {
+            id: "b1".to_string(),
+            session_id: "s1".to_string(),
+            session: vec![],
+        };
+        assert_eq!(booking.to_string(), "s1 | ? | ? | ?");
     }
 }
