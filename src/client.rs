@@ -175,6 +175,10 @@ pub struct SessionDetail {
     pub coachs: Option<Vec<SessionCoach>>,
     #[serde(rename = "yesParticipants", default)]
     pub yes_participants: Vec<String>,
+    /// Members queued for a full session: accepted by the booking endpoint, but
+    /// waiting for someone to unbook rather than holding a spot.
+    #[serde(rename = "maybeParticipants", default)]
+    pub maybe_participants: Vec<String>,
     #[serde(default)]
     pub attendees: Vec<SessionAttendee>,
 }
@@ -188,6 +192,12 @@ pub struct SessionAttendee {
 }
 
 impl SessionDetail {
+    /// Whether `user_id` is queued on this session's waiting list rather than
+    /// holding a confirmed spot.
+    pub fn is_waitlisted(&self, user_id: &str) -> bool {
+        self.maybe_participants.iter().any(|id| id == user_id)
+    }
+
     pub fn display_lines(&self) -> Vec<String> {
         let mut lines = Vec::new();
 
@@ -405,8 +415,36 @@ pub enum BookError {
     /// not help, so this is distinct from `SlotNotOpen`.
     #[error("booking rejected ({status}): {message}")]
     Rejected { status: String, message: String },
+    /// The request was accepted but only parked the member on the session's
+    /// waiting list (`maybeParticipants`) instead of confirming a spot, which is
+    /// what a full session does. The spot is *not* booked. Unlike `Rejected`
+    /// this clears on its own when somebody unbooks, so it is worth retrying.
+    #[error("not confirmed: the session is full, you are on the waiting list")]
+    WaitingList,
     #[error(transparent)]
     Request(#[from] reqwest::Error),
+}
+
+/// Whether `user_id` sits in a `maybeParticipants` list anywhere in `body`.
+///
+/// A session records its waiting list in `maybeParticipants`, alongside the
+/// confirmed `yesParticipants`. The booking endpoint has been seen to echo the
+/// session back under several shapes, so all of them are checked: the list at
+/// the top level, and under `session`/`sessions` as either one object or an
+/// array of them.
+fn is_waitlisted(body: &Value, user_id: &str) -> bool {
+    fn lists_user(session: &Value, user_id: &str) -> bool {
+        session
+            .get("maybeParticipants")
+            .and_then(Value::as_array)
+            .is_some_and(|ids| ids.iter().any(|id| id.as_str() == Some(user_id)))
+    }
+
+    std::iter::once(body)
+        .chain(body.get("session"))
+        .chain(body.get("sessions"))
+        .flat_map(|v| v.as_array().map_or_else(|| vec![v], |a| a.iter().collect()))
+        .any(|session| lists_user(session, user_id))
 }
 
 /// Interpret a 200 response body from the booking endpoint.
@@ -420,7 +458,17 @@ pub enum BookError {
 ///
 /// Only an explicit non-`success` status is treated as a failure, so an
 /// unrecognised body without a `status` is accepted rather than dropped.
-fn interpret_book_response(body: Value) -> Result<Value, BookError> {
+///
+/// A body that puts `user_id` on the session's waiting list is *not* a
+/// confirmed booking, and is reported as [`BookError::WaitingList`] whatever the
+/// `status` says.
+fn interpret_book_response(body: Value, user_id: Option<&str>) -> Result<Value, BookError> {
+    if let Some(user_id) = user_id
+        && is_waitlisted(&body, user_id)
+    {
+        return Err(BookError::WaitingList);
+    }
+
     match body.get("status").and_then(Value::as_str) {
         Some(status) if !status.eq_ignore_ascii_case("success") => {
             let message = body
@@ -754,11 +802,28 @@ impl MonClubClient {
 
         let body: Value = resp.error_for_status()?.json()?;
 
-        let outcome = interpret_book_response(body);
-        if let Err(BookError::Rejected { status, message }) = &outcome {
-            warn!("Booking not confirmed (status={status}): {message}");
+        let user_id = self.user_id.as_deref();
+        let outcome = interpret_book_response(body, user_id);
+
+        match &outcome {
+            Err(BookError::Rejected { status, message }) => {
+                warn!("Booking not confirmed (status={status}): {message}");
+                outcome
+            }
+            Err(_) => outcome,
+            // The captured success shape is a bare booking record, which says
+            // nothing about whether the spot is confirmed, so re-read the
+            // session: a full one parks the member in `maybeParticipants`
+            // instead of `yesParticipants`. Best-effort — if the check itself
+            // fails, the booking stands as reported rather than being lost.
+            Ok(_) => match (user_id, self.get_session(&session.id)) {
+                (Some(user_id), Ok(detail)) if detail.is_waitlisted(user_id) => {
+                    warn!("Booking not confirmed: on the waiting list (session is full)");
+                    Err(BookError::WaitingList)
+                }
+                _ => outcome,
+            },
         }
-        outcome
     }
 
     pub fn get_session(&self, session_id: &str) -> Result<SessionDetail> {
@@ -1256,11 +1321,13 @@ impl MonClubClient {
 mod tests {
     use super::*;
 
+    const ME: &str = "deadbeef0000000000000001";
+
     #[test]
     fn accepts_booking_record_with_id() {
         // The captured success shape: a booking record with `_id`, no `status`.
         let body = json!({"_id": "deadbeef", "isPresent": "yes"});
-        assert!(interpret_book_response(body).is_ok());
+        assert!(interpret_book_response(body, Some(ME)).is_ok());
     }
 
     #[test]
@@ -1268,14 +1335,56 @@ mod tests {
         // The observed success shape from the live API: `status: "success"`,
         // with no `_id`. This must not be treated as a failure.
         let body = json!({"status": "success", "message": "success"});
-        assert!(interpret_book_response(body).is_ok());
+        assert!(interpret_book_response(body, Some(ME)).is_ok());
     }
 
     #[test]
     fn accepts_body_without_status() {
         // No explicit failure status -> accepted rather than dropped.
         let body = json!({"foo": "bar"});
-        assert!(interpret_book_response(body).is_ok());
+        assert!(interpret_book_response(body, Some(ME)).is_ok());
+    }
+
+    #[test]
+    fn reports_waiting_list_as_unconfirmed() {
+        // Queued on a full session: accepted, but no spot held.
+        let body = json!({
+            "status": "success",
+            "session": {"maybeParticipants": ["other", ME], "yesParticipants": []}
+        });
+        assert!(matches!(
+            interpret_book_response(body, Some(ME)),
+            Err(BookError::WaitingList)
+        ));
+    }
+
+    #[test]
+    fn detects_waiting_list_in_every_echoed_shape() {
+        // Top-level list, and `session`/`sessions` as object or array.
+        for body in [
+            json!({"maybeParticipants": [ME]}),
+            json!({"session": {"maybeParticipants": [ME]}}),
+            json!({"session": [{"maybeParticipants": [ME]}]}),
+            json!({"sessions": [{"maybeParticipants": ["other"]}, {"maybeParticipants": [ME]}]}),
+        ] {
+            assert!(
+                matches!(
+                    interpret_book_response(body.clone(), Some(ME)),
+                    Err(BookError::WaitingList)
+                ),
+                "missed waiting list in {body}"
+            );
+        }
+    }
+
+    #[test]
+    fn confirmed_participant_is_not_waitlisted() {
+        // Somebody else queued, and we hold a real spot: a genuine success.
+        let body = json!({
+            "_id": "booking",
+            "session": {"maybeParticipants": ["other"], "yesParticipants": [ME]}
+        });
+        assert!(interpret_book_response(body, Some(ME)).is_ok());
     }
 
     #[test]
@@ -1285,7 +1394,7 @@ mod tests {
             "status": "noCredits",
             "message": "L\u{2019}adh\u{e9}rent a atteint la limite de ses r\u{e9}servations autoris\u{e9}es."
         });
-        match interpret_book_response(body) {
+        match interpret_book_response(body, Some(ME)) {
             Err(BookError::Rejected { status, message }) => {
                 assert_eq!(status, "noCredits");
                 assert!(message.contains("limite"));

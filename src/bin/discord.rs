@@ -182,6 +182,21 @@ async fn retry_book(
                 }
                 tokio::time::sleep(Duration::from_secs(retry_interval)).await;
             }
+            // Full: queued on the waiting list, no spot held. Waiting for a
+            // cancellation is `/watchbook`'s job, not this short retry burst.
+            Ok(Err(BookError::WaitingList)) => {
+                let _ = channel_id
+                    .say(
+                        &http,
+                        format!(
+                            "{ping}`{session_id}` is full: {label} only made the waiting list, \
+                             with no spot held. Use `/watchbook` to grab one automatically if \
+                             somebody unbooks."
+                        ),
+                    )
+                    .await;
+                return;
+            }
             // A rejection (e.g. no credits) won't clear by retrying: stop and
             // report its message.
             Ok(Err(e @ BookError::Rejected { .. })) => {
@@ -223,6 +238,18 @@ fn is_permanent_rejection(status: &str) -> bool {
     PERMANENT.contains(&normalised.as_str())
 }
 
+/// Stop a watch after this many failures in a row rather than hammering a
+/// broken endpoint for days.
+const MAX_CONSECUTIVE_ERRORS: u32 = 5;
+
+/// Post a watch update, logging rather than silently dropping a failed send: a
+/// watch runs unattended for days, with no reply slot to fall back on.
+async fn post_watch_update(http: &serenity::Http, channel_id: serenity::ChannelId, msg: String) {
+    if let Err(e) = channel_id.say(http, msg).await {
+        tracing::warn!("Failed to post watchbook message: {e}");
+    }
+}
+
 /// One account's `/watchbook` task: wait for the booking window, then keep
 /// trying until the booking lands or the session starts.
 struct WatchBook {
@@ -251,18 +278,6 @@ struct WatchBook {
 /// much slower `watch_poll_interval` afterwards, when what we're waiting for is
 /// a cancellation that may never come.
 async fn watch_and_book(w: WatchBook) {
-    /// A watch runs unattended for days, so a failed post is logged rather than
-    /// silently dropped.
-    async fn post(http: &serenity::Http, channel_id: serenity::ChannelId, msg: String) {
-        if let Err(e) = channel_id.say(http, msg).await {
-            tracing::warn!("Failed to post watchbook message: {e}");
-        }
-    }
-
-    /// Stop watching after this many failures in a row rather than hammering a
-    /// broken endpoint for days.
-    const MAX_CONSECUTIVE_ERRORS: u32 = 5;
-
     let WatchBook {
         http,
         channel_id,
@@ -294,9 +309,8 @@ async fn watch_and_book(w: WatchBook) {
 
     loop {
         if Local::now() >= until {
-            let msg =
-                format!("{ping}Stopped watching `{label}` for {who}: the session has started.");
-            post(&http, channel_id, msg).await;
+            let msg = format!("{ping}Stopped watching `{label}` for {who}: the session started.");
+            post_watch_update(&http, channel_id, msg).await;
             return;
         }
 
@@ -306,14 +320,13 @@ async fn watch_and_book(w: WatchBook) {
         })
         .await;
 
+        // Set when the attempt failed for a reason worth waiting out.
+        let mut waiting_reason: Option<String> = None;
+
         let delay = match result {
             Ok(Ok(_)) => {
-                post(
-                    &http,
-                    channel_id,
-                    format!("{ping}Booked `{label}` for {who}."),
-                )
-                .await;
+                let msg = format!("{ping}Booked `{label}` for {who}.");
+                post_watch_update(&http, channel_id, msg).await;
                 return;
             }
             // Window not open yet.
@@ -328,24 +341,27 @@ async fn watch_and_book(w: WatchBook) {
             // Declined for a reason that waiting can't fix (e.g. no credits).
             Ok(Err(BookError::Rejected { status, message })) if is_permanent_rejection(&status) => {
                 let msg = format!("{ping}Booking failed for {who}: {message} (`{status}`).");
-                post(&http, channel_id, msg).await;
+                post_watch_update(&http, channel_id, msg).await;
                 return;
             }
-            // Declined for some other reason — most likely a full session, which
-            // clears when somebody unbooks. Keep watching, and surface the real
-            // status once so an unexpected one is visible rather than silent.
+            // Full: the request was accepted but only queued us on the waiting
+            // list, so there is still no spot. Exactly what this watch is for.
+            Ok(Err(BookError::WaitingList)) => {
+                consecutive_errors = 0;
+                waiting_reason = Some(format!(
+                    "`{label}` is full for {who}, so that attempt only made the waiting list."
+                ));
+                poll
+            }
+            // Declined for some other reason — quite possibly another way of
+            // saying "full", which clears when somebody unbooks. Keep watching,
+            // and surface the real status so an unexpected one is visible rather
+            // than silent.
             Ok(Err(BookError::Rejected { status, message })) => {
                 consecutive_errors = 0;
-                if !announced_wait {
-                    announced_wait = true;
-                    let secs = poll.as_secs();
-                    let msg = format!(
-                        "{ping}Can't book `{label}` for {who} yet: {message} (`{status}`). \
-                         Retrying every {secs}s until the session starts, and I'll book it the \
-                         moment a spot frees up."
-                    );
-                    post(&http, channel_id, msg).await;
-                }
+                waiting_reason = Some(format!(
+                    "Can't book `{label}` for {who} yet: {message} (`{status}`)."
+                ));
                 poll
             }
             // Network or task failure: transient, so keep watching unless they
@@ -362,12 +378,25 @@ async fn watch_and_book(w: WatchBook) {
             }
         };
 
+        // Say why we're still waiting once, not on every poll.
+        if let Some(reason) = waiting_reason
+            && !announced_wait
+        {
+            announced_wait = true;
+            let secs = poll.as_secs();
+            let msg = format!(
+                "{ping}{reason} Retrying every {secs}s until the session starts, and I'll take a \
+                 real spot the moment one frees up."
+            );
+            post_watch_update(&http, channel_id, msg).await;
+        }
+
         if consecutive_errors >= MAX_CONSECUTIVE_ERRORS {
             let msg = format!(
                 "{ping}Gave up watching `{label}` for {who} after {MAX_CONSECUTIVE_ERRORS} \
                  consecutive errors."
             );
-            post(&http, channel_id, msg).await;
+            post_watch_update(&http, channel_id, msg).await;
             return;
         }
 
@@ -833,6 +862,7 @@ async fn book(
 
     let mut booked: Vec<String> = Vec::new();
     let mut retrying: Vec<String> = Vec::new();
+    let mut waitlisted: Vec<String> = Vec::new();
     let mut failed: Vec<String> = Vec::new();
 
     for account in targets {
@@ -863,6 +893,8 @@ async fn book(
                 ));
                 retrying.push(label);
             }
+            // The session is full: queued, but no spot held.
+            Ok(Err(BookError::WaitingList)) => waitlisted.push(label),
             // A rejection (e.g. no credits) won't be fixed by retrying, so
             // report it with its message rather than scheduling a retry.
             Ok(Err(e @ BookError::Rejected { .. })) => failed.push(format!("{label} ({e})")),
@@ -881,6 +913,13 @@ async fn book(
         lines.push(format!(
             "Slot not open yet for: {}. Retrying every {retry_interval}s for up to {retry_duration}s...",
             retrying.join(", ")
+        ));
+    }
+    if !waitlisted.is_empty() {
+        lines.push(format!(
+            "`{session_id}` is full: {} only made the waiting list, with no spot held. Use \
+             `/watchbook` to grab one automatically if somebody unbooks.",
+            waitlisted.join(", ")
         ));
     }
     if !failed.is_empty() {
