@@ -171,6 +171,7 @@ Slash commands are registered globally on first startup (may take up to an hour 
 | `/prebook <session> <when> [users]` | Schedule a booking to fire at a given time (`HH:MM` or `YYYY-MM-DD HH:MM`), optionally for other linked people. |
 | `/bookings` | List your upcoming bookings. |
 | `/notify <session>` | Get pinged in the channel when a session that isn't bookable yet crosses its booking window (`session start − BOOKING_WINDOW_HOURS`, default 144h). The `session` argument has autocomplete. Alert only — it does not book; you book it yourself in the app. If the session is already bookable it says so immediately. Like `/prebook`, the pending alert is in-memory and lost if the bot restarts. |
+| `/watchbook <session> [users]` | `/notify` + `/book`: watch a session and book it automatically the moment its booking window opens (`session start − BOOKING_WINDOW_HOURS`), then post the outcome in the channel with a ping. `users` books for other linked people at once (same syntax as `/book`). If the session is already bookable, it books straight away. Around the window opening the API can still answer 409, so each account retries every `RETRY_INTERVAL` seconds for up to `RETRY_DURATION`. Unlike `/book` with several targets, this is **not atomic** — each account is booked independently and a failure for one does not roll back the others. Like `/prebook`, the pending watch is in-memory and lost if the bot restarts. |
 
 #### Running as a service (systemd example)
 

@@ -137,19 +137,27 @@ fn resolve_targets(ctx: &Context<'_>, users: Option<&str>) -> Result<Vec<Account
     Ok(resolved)
 }
 
+/// Render an optional ping prefix for background messages, so the person who
+/// asked for the booking is notified rather than just the channel.
+fn mention_prefix(mention: Option<serenity::UserId>) -> String {
+    mention.map_or_else(String::new, |id| format!("<@{id}> "))
+}
+
 /// Retry booking `session_id` in the background until the slot opens or the
-/// deadline passes, posting the outcome to `channel_id`.
+/// deadline passes, posting the outcome to `channel_id` (pinging `mention` when
+/// set). Retry pacing comes from `config`.
 async fn retry_book(
     http: Arc<serenity::Http>,
     channel_id: serenity::ChannelId,
+    mention: Option<serenity::UserId>,
     config: Config,
     account: Account,
     session_id: String,
-    retry_duration: u64,
-    retry_interval: u64,
 ) {
-    let deadline = tokio::time::Instant::now() + Duration::from_secs(retry_duration);
+    let deadline = tokio::time::Instant::now() + Duration::from_secs(config.retry_duration);
+    let retry_interval = config.retry_interval;
     let label = account.label.clone();
+    let ping = mention_prefix(mention);
 
     loop {
         let sid = session_id.clone();
@@ -161,14 +169,14 @@ async fn retry_book(
         match result {
             Ok(Ok(_)) => {
                 let _ = channel_id
-                    .say(&http, format!("Booked `{session_id}` for {label}."))
+                    .say(&http, format!("{ping}Booked `{session_id}` for {label}."))
                     .await;
                 return;
             }
             Ok(Err(BookError::SlotNotOpen(_))) => {
                 if tokio::time::Instant::now() >= deadline {
                     let _ = channel_id
-                        .say(&http, format!("Booking window expired for {label}."))
+                        .say(&http, format!("{ping}Booking window expired for {label}."))
                         .await;
                     return;
                 }
@@ -178,7 +186,7 @@ async fn retry_book(
             // report its message.
             Ok(Err(e @ BookError::Rejected { .. })) => {
                 let _ = channel_id
-                    .say(&http, format!("Booking failed for {label}: {e}"))
+                    .say(&http, format!("{ping}Booking failed for {label}: {e}"))
                     .await;
                 return;
             }
@@ -186,12 +194,38 @@ async fn retry_book(
                 let _ = channel_id
                     .say(
                         &http,
-                        format!("Booking failed for {label} with an unexpected error."),
+                        format!("{ping}Booking failed for {label} with an unexpected error."),
                     )
                     .await;
                 return;
             }
         }
+    }
+}
+
+/// Spawn one background task per target that waits `wait`, then books
+/// `session_id` with the usual retry behaviour, reporting into the invoking
+/// channel. Shared by `/prebook` (wait until a clock time) and `/watchbook`
+/// (wait until the booking window opens).
+fn spawn_scheduled_bookings(
+    ctx: &Context<'_>,
+    session_id: &str,
+    targets: Vec<Account>,
+    wait: Duration,
+    mention: Option<serenity::UserId>,
+) {
+    for account in targets {
+        let http = ctx.serenity_context().http.clone();
+        let channel_id = ctx.channel_id();
+        let config = ctx.data().config.clone();
+        let session_id = session_id.to_string();
+
+        tokio::spawn(async move {
+            if !wait.is_zero() {
+                tokio::time::sleep(wait).await;
+            }
+            retry_book(http, channel_id, mention, config, account, session_id).await;
+        });
     }
 }
 
@@ -644,8 +678,6 @@ async fn book(
         match book_result {
             Ok(Ok(_)) => booked.push(label),
             Ok(Err(BookError::SlotNotOpen(_))) => {
-                let retry_duration = ctx.data().config.retry_duration;
-                let retry_interval = ctx.data().config.retry_interval;
                 let http = ctx.serenity_context().http.clone();
                 let channel_id = ctx.channel_id();
                 let config = ctx.data().config.clone();
@@ -653,11 +685,10 @@ async fn book(
                 tokio::spawn(retry_book(
                     http,
                     channel_id,
+                    None,
                     config,
                     account,
                     session_id.clone(),
-                    retry_duration,
-                    retry_interval,
                 ));
                 retrying.push(label);
             }
@@ -741,29 +772,7 @@ async fn prebook(
     ))
     .await?;
 
-    let retry_duration = ctx.data().config.retry_duration;
-    let retry_interval = ctx.data().config.retry_interval;
-
-    for account in targets {
-        let http = ctx.serenity_context().http.clone();
-        let channel_id = ctx.channel_id();
-        let config = ctx.data().config.clone();
-        let session_id = session_id.clone();
-
-        tokio::spawn(async move {
-            tokio::time::sleep(wait).await;
-            retry_book(
-                http,
-                channel_id,
-                config,
-                account,
-                session_id,
-                retry_duration,
-                retry_interval,
-            )
-            .await;
-        });
-    }
+    spawn_scheduled_bookings(&ctx, &session_id, targets, wait, None);
 
     Ok(())
 }
@@ -873,6 +882,30 @@ async fn compare(
     send_chunked(ctx, &lines).await
 }
 
+/// Fetch `session_id` and work out its display label and when its booking
+/// window opens (`start - booking_window_hours`).
+///
+/// `open_at` is `None` when the session's start instant can't be parsed, in
+/// which case the window is unknowable. Shared by `/notify` and `/watchbook`.
+async fn session_booking_window(
+    ctx: &Context<'_>,
+    session_id: &str,
+) -> anyhow::Result<(String, Option<DateTime<Local>>)> {
+    let config = ctx.data().config.clone();
+    let sid = session_id.to_string();
+    let detail = with_client(config, move |c| c.get_session(&sid)).await?;
+
+    let label = detail.name.clone().unwrap_or_else(|| session_id.to_string());
+    let window = chrono::Duration::hours(ctx.data().config.booking_window_hours);
+    let open_at = detail
+        .date
+        .as_deref()
+        .and_then(parse_session_start)
+        .map(|start| start - window);
+
+    Ok((label, open_at))
+}
+
 /// Get pinged here when a session becomes bookable (crosses its booking window)
 #[poise::command(slash_command)]
 async fn notify(
@@ -885,13 +918,9 @@ async fn notify(
 
     ctx.defer().await?;
 
-    let config = ctx.data().config.clone();
-    let sid = session_id.clone();
-    let detail = with_client(config, move |c| c.get_session(&sid)).await?;
+    let (label, open_at) = session_booking_window(&ctx, &session_id).await?;
 
-    let label = detail.name.clone().unwrap_or_else(|| session_id.clone());
-
-    let Some(start) = detail.date.as_deref().and_then(parse_session_start) else {
+    let Some(open_at) = open_at else {
         ctx.say(format!(
             "Couldn't read the start time for `{label}`, so I can't work out its booking window."
         ))
@@ -899,8 +928,6 @@ async fn notify(
         return Ok(());
     };
 
-    let window = chrono::Duration::hours(ctx.data().config.booking_window_hours);
-    let open_at = start - window;
     let now = Local::now();
 
     // Already inside the window (or the session is in the past): nothing to wait for.
@@ -927,6 +954,72 @@ async fn notify(
         label,
         wait,
     ));
+
+    Ok(())
+}
+
+/// Watch a session and book it automatically as soon as it becomes bookable
+///
+/// `/notify` + `/book`: waits for the booking window to open, books, and posts
+/// the outcome here with a ping. Unlike `/book` for several people, this is not
+/// atomic — each account is booked independently, so one failure doesn't roll
+/// the others back. Pending watches are lost if the bot restarts (same
+/// limitation as `/prebook`).
+#[poise::command(slash_command)]
+async fn watchbook(
+    ctx: Context<'_>,
+    #[description = "Session to watch and book"]
+    #[autocomplete = "autocomplete_session"]
+    session_id: String,
+    #[description = "People to book for (mentions, labels, or @everyone); defaults to you"]
+    users: Option<String>,
+) -> Result<(), Error> {
+    ensure_owner!(ctx);
+
+    ctx.defer().await?;
+
+    let targets = match resolve_targets(&ctx, users.as_deref()) {
+        Ok(t) => t,
+        Err(e) => {
+            ctx.say(e).await?;
+            return Ok(());
+        }
+    };
+
+    let (label, open_at) = session_booking_window(&ctx, &session_id).await?;
+
+    let Some(open_at) = open_at else {
+        ctx.say(format!(
+            "Couldn't read the start time for `{label}`, so I can't work out its booking window."
+        ))
+        .await?;
+        return Ok(());
+    };
+
+    let labels: Vec<&str> = targets.iter().map(|a| a.label.as_str()).collect();
+    let labels = labels.join(", ");
+
+    // A window that already opened (or a session in the past) means there is
+    // nothing to wait for: go straight to booking.
+    let wait = (open_at - Local::now()).to_std().unwrap_or(Duration::ZERO);
+
+    if wait.is_zero() {
+        ctx.say(format!(
+            "`{label}` is already bookable \u{2014} booking now for {labels}."
+        ))
+        .await?;
+    } else {
+        let retry_duration = ctx.data().config.retry_duration;
+        let retry_interval = ctx.data().config.retry_interval;
+        ctx.say(format!(
+            "Watching `{label}`. I'll book it for {labels} when its window opens on `{}` ({}h before the session starts), retrying every {retry_interval}s for up to {retry_duration}s, and post the result here.",
+            open_at.format("%Y-%m-%d %H:%M"),
+            ctx.data().config.booking_window_hours,
+        ))
+        .await?;
+    }
+
+    spawn_scheduled_bookings(&ctx, &session_id, targets, wait, Some(ctx.author().id));
 
     Ok(())
 }
@@ -965,6 +1058,7 @@ async fn main() {
                 booking(),
                 compare(),
                 notify(),
+                watchbook(),
             ],
             ..Default::default()
         })
