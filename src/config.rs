@@ -121,6 +121,10 @@ pub struct Config {
     /// How long (hours) before a session's start the booking window opens. Used
     /// by `/notify` to work out when a not-yet-bookable session becomes bookable.
     pub booking_window_hours: i64,
+    /// How often (seconds) `/watchbook` re-attempts a booking once the window is
+    /// open but the session is full, waiting for someone to unbook. Much slower
+    /// than `retry_interval`, since this watch can run for days.
+    pub watch_poll_interval: u64,
     /// Extra bookable accounts loaded from `users.json`, keyed to Discord users.
     /// These take precedence over the primary account when they share a Discord
     /// id or label (see [`Config::accounts`]).
@@ -143,6 +147,13 @@ impl std::fmt::Debug for Config {
                 &self.discord_token.as_ref().map(|_| "<redacted>"),
             )
             .field("discord_owner_id", &self.discord_owner_id)
+            .field("new_sessions_channel_id", &self.new_sessions_channel_id)
+            .field(
+                "new_sessions_poll_interval",
+                &self.new_sessions_poll_interval,
+            )
+            .field("booking_window_hours", &self.booking_window_hours)
+            .field("watch_poll_interval", &self.watch_poll_interval)
             .field("users", &self.users)
             .finish()
     }
@@ -169,6 +180,7 @@ impl Config {
             new_sessions_channel_id: env_opt("NEW_SESSIONS_CHANNEL_ID"),
             new_sessions_poll_interval: env_parse("NEW_SESSIONS_POLL_INTERVAL", 60),
             booking_window_hours: env_parse("BOOKING_WINDOW_HOURS", 144),
+            watch_poll_interval: env_parse("WATCH_POLL_INTERVAL", 60),
             users,
         }
     }
@@ -251,6 +263,7 @@ mod tests {
             new_sessions_channel_id: None,
             new_sessions_poll_interval: 60,
             booking_window_hours: 144,
+            watch_poll_interval: 60,
             users,
         }
     }

@@ -203,10 +203,181 @@ async fn retry_book(
     }
 }
 
+/// Whether a soft rejection from the booking endpoint is permanent, i.e. no
+/// amount of waiting will make it succeed.
+///
+/// The endpoint answers 200 with a `status` for several distinct situations,
+/// and a *full* session is one of them — that one clears as soon as somebody
+/// unbooks, which is exactly what `/watchbook` waits for. Only statuses known to
+/// be about the member rather than the session are treated as permanent, so an
+/// unrecognised status is retried rather than silently abandoning the watch.
+fn is_permanent_rejection(status: &str) -> bool {
+    const PERMANENT: [&str; 3] = ["nocredits", "nocredit", "nomembership"];
+
+    let normalised: String = status
+        .chars()
+        .filter(char::is_ascii_alphanumeric)
+        .map(|c| c.to_ascii_lowercase())
+        .collect();
+
+    PERMANENT.contains(&normalised.as_str())
+}
+
+/// One account's `/watchbook` task: wait for the booking window, then keep
+/// trying until the booking lands or the session starts.
+struct WatchBook {
+    http: Arc<serenity::Http>,
+    channel_id: serenity::ChannelId,
+    /// Who to ping with the outcome.
+    mention: serenity::UserId,
+    config: Config,
+    account: Account,
+    session_id: String,
+    /// The session's display name, for readable messages.
+    label: String,
+    /// How long until the booking window opens; zero when it already has.
+    wait: Duration,
+    /// Give up at this instant — the session's start, after which booking is moot.
+    until: DateTime<Local>,
+}
+
+/// Book as soon as the session can be booked, waiting through both reasons it
+/// currently can't: the window not being open yet, and the session being full.
+///
+/// Attempts the booking rather than reading the session's free capacity: a spot
+/// freed by someone unbooking goes to whoever asks for it first, so asking is
+/// both the detection and the claim. Attempts are paced by `retry_interval`
+/// while the window is opening (a burst, bounded by `retry_duration`) and by the
+/// much slower `watch_poll_interval` afterwards, when what we're waiting for is
+/// a cancellation that may never come.
+async fn watch_and_book(w: WatchBook) {
+    /// A watch runs unattended for days, so a failed post is logged rather than
+    /// silently dropped.
+    async fn post(http: &serenity::Http, channel_id: serenity::ChannelId, msg: String) {
+        if let Err(e) = channel_id.say(http, msg).await {
+            tracing::warn!("Failed to post watchbook message: {e}");
+        }
+    }
+
+    /// Stop watching after this many failures in a row rather than hammering a
+    /// broken endpoint for days.
+    const MAX_CONSECUTIVE_ERRORS: u32 = 5;
+
+    let WatchBook {
+        http,
+        channel_id,
+        mention,
+        config,
+        account,
+        session_id,
+        label,
+        wait,
+        until,
+    } = w;
+
+    let who = account.label.clone();
+    let ping = mention_prefix(Some(mention));
+
+    if !wait.is_zero() {
+        tokio::time::sleep(wait).await;
+    }
+
+    // Right after the window opens the API may still answer 409, so poll fast
+    // for `retry_duration`; past that, settle into the slow watch.
+    let burst_until = tokio::time::Instant::now() + Duration::from_secs(config.retry_duration);
+    let poll = Duration::from_secs(config.watch_poll_interval.max(1));
+    let burst = Duration::from_secs(config.retry_interval.max(1));
+
+    // Report a "still full" status once rather than on every poll.
+    let mut announced_wait = false;
+    let mut consecutive_errors = 0_u32;
+
+    loop {
+        if Local::now() >= until {
+            let msg =
+                format!("{ping}Stopped watching `{label}` for {who}: the session has started.");
+            post(&http, channel_id, msg).await;
+            return;
+        }
+
+        let sid = session_id.clone();
+        let result = with_account(config.clone(), account.clone(), move |c| {
+            Ok(c.book_session(&Session::from_id(sid)))
+        })
+        .await;
+
+        let delay = match result {
+            Ok(Ok(_)) => {
+                post(
+                    &http,
+                    channel_id,
+                    format!("{ping}Booked `{label}` for {who}."),
+                )
+                .await;
+                return;
+            }
+            // Window not open yet.
+            Ok(Err(BookError::SlotNotOpen(_))) => {
+                consecutive_errors = 0;
+                if tokio::time::Instant::now() < burst_until {
+                    burst
+                } else {
+                    poll
+                }
+            }
+            // Declined for a reason that waiting can't fix (e.g. no credits).
+            Ok(Err(BookError::Rejected { status, message })) if is_permanent_rejection(&status) => {
+                let msg = format!("{ping}Booking failed for {who}: {message} (`{status}`).");
+                post(&http, channel_id, msg).await;
+                return;
+            }
+            // Declined for some other reason — most likely a full session, which
+            // clears when somebody unbooks. Keep watching, and surface the real
+            // status once so an unexpected one is visible rather than silent.
+            Ok(Err(BookError::Rejected { status, message })) => {
+                consecutive_errors = 0;
+                if !announced_wait {
+                    announced_wait = true;
+                    let secs = poll.as_secs();
+                    let msg = format!(
+                        "{ping}Can't book `{label}` for {who} yet: {message} (`{status}`). \
+                         Retrying every {secs}s until the session starts, and I'll book it the \
+                         moment a spot frees up."
+                    );
+                    post(&http, channel_id, msg).await;
+                }
+                poll
+            }
+            // Network or task failure: transient, so keep watching unless they
+            // pile up.
+            Ok(Err(BookError::Request(e))) => {
+                consecutive_errors += 1;
+                tracing::warn!("watchbook request failed for {who}: {e}");
+                poll
+            }
+            Err(e) => {
+                consecutive_errors += 1;
+                tracing::warn!("watchbook attempt failed for {who}: {e}");
+                poll
+            }
+        };
+
+        if consecutive_errors >= MAX_CONSECUTIVE_ERRORS {
+            let msg = format!(
+                "{ping}Gave up watching `{label}` for {who} after {MAX_CONSECUTIVE_ERRORS} \
+                 consecutive errors."
+            );
+            post(&http, channel_id, msg).await;
+            return;
+        }
+
+        tokio::time::sleep(delay).await;
+    }
+}
+
 /// Spawn one background task per target that waits `wait`, then books
 /// `session_id` with the usual retry behaviour, reporting into the invoking
-/// channel. Shared by `/prebook` (wait until a clock time) and `/watchbook`
-/// (wait until the booking window opens).
+/// channel. Used by `/prebook` to fire at a clock time.
 fn spawn_scheduled_bookings(
     ctx: &Context<'_>,
     session_id: &str,
@@ -882,28 +1053,42 @@ async fn compare(
     send_chunked(ctx, &lines).await
 }
 
-/// Fetch `session_id` and work out its display label and when its booking
-/// window opens (`start - booking_window_hours`).
+/// A session's display label, start instant, and the moment its booking window
+/// opens.
+struct SessionWindow {
+    label: String,
+    start: DateTime<Local>,
+    open_at: DateTime<Local>,
+}
+
+/// Fetch `session_id` and work out its label, start, and booking window opening
+/// (`start - booking_window_hours`). Shared by `/notify` and `/watchbook`.
 ///
-/// `open_at` is `None` when the session's start instant can't be parsed, in
-/// which case the window is unknowable. Shared by `/notify` and `/watchbook`.
+/// The inner `Err(label)` means the session's start instant couldn't be parsed,
+/// so its window is unknowable; the label is still returned for the reply.
 async fn session_booking_window(
     ctx: &Context<'_>,
     session_id: &str,
-) -> anyhow::Result<(String, Option<DateTime<Local>>)> {
+) -> anyhow::Result<Result<SessionWindow, String>> {
     let config = ctx.data().config.clone();
     let sid = session_id.to_string();
     let detail = with_client(config, move |c| c.get_session(&sid)).await?;
 
-    let label = detail.name.clone().unwrap_or_else(|| session_id.to_string());
+    let label = detail
+        .name
+        .clone()
+        .unwrap_or_else(|| session_id.to_string());
     let window = chrono::Duration::hours(ctx.data().config.booking_window_hours);
-    let open_at = detail
-        .date
-        .as_deref()
-        .and_then(parse_session_start)
-        .map(|start| start - window);
 
-    Ok((label, open_at))
+    let Some(start) = detail.date.as_deref().and_then(parse_session_start) else {
+        return Ok(Err(label));
+    };
+
+    Ok(Ok(SessionWindow {
+        label,
+        start,
+        open_at: start - window,
+    }))
 }
 
 /// Get pinged here when a session becomes bookable (crosses its booking window)
@@ -918,15 +1103,18 @@ async fn notify(
 
     ctx.defer().await?;
 
-    let (label, open_at) = session_booking_window(&ctx, &session_id).await?;
-
-    let Some(open_at) = open_at else {
-        ctx.say(format!(
-            "Couldn't read the start time for `{label}`, so I can't work out its booking window."
-        ))
-        .await?;
-        return Ok(());
+    let window = match session_booking_window(&ctx, &session_id).await? {
+        Ok(w) => w,
+        Err(label) => {
+            ctx.say(format!(
+                "Couldn't read the start time for `{label}`, so I can't work out its booking \
+                 window."
+            ))
+            .await?;
+            return Ok(());
+        }
     };
+    let SessionWindow { label, open_at, .. } = window;
 
     let now = Local::now();
 
@@ -958,13 +1146,15 @@ async fn notify(
     Ok(())
 }
 
-/// Watch a session and book it automatically as soon as it becomes bookable
+/// Watch a session and book it as soon as it can be booked
 ///
-/// `/notify` + `/book`: waits for the booking window to open, books, and posts
-/// the outcome here with a ping. Unlike `/book` for several people, this is not
-/// atomic — each account is booked independently, so one failure doesn't roll
-/// the others back. Pending watches are lost if the bot restarts (same
-/// limitation as `/prebook`).
+/// `/notify` + `/book`: waits for the booking window to open **and** for a spot
+/// to be free, then books and pings here with the outcome. A session that is
+/// already open but full is retried every `WATCH_POLL_INTERVAL` seconds until it
+/// starts, so a cancellation by someone else is claimed automatically. Unlike
+/// `/book` for several people this is not atomic — each account is watched
+/// independently, so one failure doesn't roll the others back. Pending watches
+/// are lost if the bot restarts (same limitation as `/prebook`).
 #[poise::command(slash_command)]
 async fn watchbook(
     ctx: Context<'_>,
@@ -986,40 +1176,68 @@ async fn watchbook(
         }
     };
 
-    let (label, open_at) = session_booking_window(&ctx, &session_id).await?;
-
-    let Some(open_at) = open_at else {
-        ctx.say(format!(
-            "Couldn't read the start time for `{label}`, so I can't work out its booking window."
-        ))
-        .await?;
-        return Ok(());
+    let window = match session_booking_window(&ctx, &session_id).await? {
+        Ok(w) => w,
+        Err(label) => {
+            ctx.say(format!(
+                "Couldn't read the start time for `{label}`, so I can't work out its booking \
+                 window."
+            ))
+            .await?;
+            return Ok(());
+        }
     };
+    let SessionWindow {
+        label,
+        start,
+        open_at,
+    } = window;
+
+    let now = Local::now();
+    if start <= now {
+        ctx.say(format!("`{label}` has already started.")).await?;
+        return Ok(());
+    }
 
     let labels: Vec<&str> = targets.iter().map(|a| a.label.as_str()).collect();
     let labels = labels.join(", ");
 
-    // A window that already opened (or a session in the past) means there is
-    // nothing to wait for: go straight to booking.
-    let wait = (open_at - Local::now()).to_std().unwrap_or(Duration::ZERO);
+    // A window that already opened means there is nothing to wait for: attempt
+    // immediately, and let the watch loop handle a full session.
+    let wait = (open_at - now).to_std().unwrap_or(Duration::ZERO);
+    let poll = ctx.data().config.watch_poll_interval;
 
     if wait.is_zero() {
         ctx.say(format!(
-            "`{label}` is already bookable \u{2014} booking now for {labels}."
+            "Watching `{label}` for {labels}. It's already in its booking window, so I'm trying \
+             now and then every {poll}s until it starts \u{2014} if it's full, I'll grab a spot as \
+             soon as one frees up."
         ))
         .await?;
     } else {
-        let retry_duration = ctx.data().config.retry_duration;
-        let retry_interval = ctx.data().config.retry_interval;
         ctx.say(format!(
-            "Watching `{label}`. I'll book it for {labels} when its window opens on `{}` ({}h before the session starts), retrying every {retry_interval}s for up to {retry_duration}s, and post the result here.",
+            "Watching `{label}` for {labels}. I'll book it when its window opens on `{}` ({}h \
+             before the session starts), then keep retrying every {poll}s until it starts if it's \
+             full. I'll post the result here.",
             open_at.format("%Y-%m-%d %H:%M"),
             ctx.data().config.booking_window_hours,
         ))
         .await?;
     }
 
-    spawn_scheduled_bookings(&ctx, &session_id, targets, wait, Some(ctx.author().id));
+    for account in targets {
+        tokio::spawn(watch_and_book(WatchBook {
+            http: ctx.serenity_context().http.clone(),
+            channel_id: ctx.channel_id(),
+            mention: ctx.author().id,
+            config: ctx.data().config.clone(),
+            account,
+            session_id: session_id.clone(),
+            label: label.clone(),
+            wait,
+            until: start,
+        }));
+    }
 
     Ok(())
 }
@@ -1097,7 +1315,7 @@ async fn main() {
 
 #[cfg(test)]
 mod tests {
-    use super::{is_everyone, parse_mention, parse_session_start};
+    use super::{is_everyone, is_permanent_rejection, parse_mention, parse_session_start};
 
     #[test]
     fn parses_plain_and_nickname_mentions() {
@@ -1137,6 +1355,26 @@ mod tests {
             open.to_rfc3339_opts(SecondsFormat::Secs, true),
             "2026-03-16T08:00:00Z"
         );
+    }
+
+    #[test]
+    fn treats_member_side_rejections_as_permanent() {
+        // Normalisation covers the casing/punctuation variants the API uses.
+        assert!(is_permanent_rejection("noCredits"));
+        assert!(is_permanent_rejection("no_credits"));
+        assert!(is_permanent_rejection("NO CREDIT"));
+        assert!(is_permanent_rejection("noMembership"));
+    }
+
+    #[test]
+    fn treats_full_and_unknown_rejections_as_retryable() {
+        // A full session clears when someone unbooks, so the watch must go on.
+        assert!(!is_permanent_rejection("full"));
+        assert!(!is_permanent_rejection("sessionFull"));
+        assert!(!is_permanent_rejection("complet"));
+        // An unrecognised status keeps watching rather than silently stopping.
+        assert!(!is_permanent_rejection("somethingNew"));
+        assert!(!is_permanent_rejection(""));
     }
 
     #[test]
